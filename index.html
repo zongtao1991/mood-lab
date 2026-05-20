@@ -1,0 +1,2116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>情绪实验室 · 个人主页</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Noto+Serif+SC:wght@200;300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0A0A0F;
+  --text: #E8E8E8;
+  --text-dim: #888;
+  --glass-bg: rgba(255,255,255,0.04);
+  --glass-border: rgba(255,255,255,0.08);
+  --accent: #666;
+  --transition: 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  
+  /* Theme colors for different sections */
+  --hero-ambient-1: #444;
+  --hero-ambient-2: #333;
+  --lab-ambient-1: #444;
+  --lab-ambient-2: #333;
+  --ai-ambient-1: #00BCD4;
+  --ai-ambient-2: #1A1A2E;
+  --phone-ambient-1: #8B7355;
+  --phone-ambient-2: #4A3F2E;
+  --contact-ambient-1: #666;
+  --contact-ambient-2: #444;
+}
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Serif SC', 'Cormorant Garamond', serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.8;
+}
+
+/* === Ambient Background === */
+.ambient {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  transition: background var(--transition);
+}
+.ambient::before, .ambient::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.15;
+  transition: all 1.2s ease;
+}
+.ambient::before {
+  width: 600px; height: 600px;
+  top: -200px; right: -100px;
+  background: var(--ambient-1, #444);
+}
+.ambient::after {
+  width: 500px; height: 500px;
+  bottom: -150px; left: 10%;
+  background: var(--ambient-2, #333);
+}
+
+/* === Layout === */
+.app {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  min-height: 100vh;
+}
+
+/* === Global Sidebar === */
+.sidebar {
+  padding: 40px 28px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-right: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-header {
+  margin-bottom: 12px;
+}
+
+.sidebar-title {
+  font-size: 0.8rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text);
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.sidebar-subtitle {
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+  font-family: 'Cormorant Garamond', serif;
+}
+
+/* Navigation */
+.nav-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--glass-border);
+}
+
+.nav-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-family: 'Cormorant Garamond', serif;
+  margin-bottom: 8px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+.nav-item:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: var(--glass-border);
+}
+
+.nav-item.active {
+  background: rgba(255,255,255,0.08);
+  border-color: var(--accent);
+}
+
+.nav-icon {
+  font-size: 1.2rem;
+  width: 24px;
+  text-align: center;
+}
+
+.nav-text {
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.nav-desc {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  font-family: 'Cormorant Garamond', serif;
+}
+
+/* Lab Mixer Section */
+.lab-mixer-section {
+  margin-top: 12px;
+  padding-top: 20px;
+  border-top: 1px solid var(--glass-border);
+  display: none;
+}
+
+.lab-mixer-section.visible {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mixer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mixer-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-family: 'Cormorant Garamond', serif;
+}
+.mixer-label-cn {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.mixer-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Noto Serif SC', serif;
+  font-size: 0.85rem;
+  padding: 12px 36px 12px 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  width: 100%;
+}
+.mixer-select:hover {
+  border-color: rgba(255,255,255,0.25);
+  background-color: rgba(255,255,255,0.08);
+}
+.mixer-select:focus {
+  outline: none;
+  border-color: rgba(255,255,255,0.35);
+  box-shadow: 0 0 20px rgba(255,255,255,0.05);
+}
+.mixer-select option {
+  background: #1a1a24;
+  color: #e8e8e8;
+  padding: 8px;
+}
+
+/* === Waveform === */
+.waveform {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 32px;
+  margin-top: 4px;
+}
+.waveform-bar {
+  width: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0.5;
+  transition: height 0.4s ease, background 0.6s ease;
+}
+
+/* === Mix Ratio === */
+.mix-ratio {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--glass-border);
+}
+.mix-ratio-title {
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-family: 'Cormorant Garamond', serif;
+}
+.ratio-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ratio-label {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  width: 28px;
+  text-align: right;
+}
+.ratio-track {
+  flex: 1;
+  height: 2px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 1px;
+  overflow: hidden;
+}
+.ratio-fill {
+  height: 100%;
+  border-radius: 1px;
+  transition: width 0.5s ease, background 0.5s ease;
+  background: var(--accent);
+}
+
+/* === Main Content Area === */
+.main-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.section {
+  min-height: 100vh;
+  padding: 60px 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* === Hero Section === */
+.hero-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 48px;
+}
+
+.hero-greeting {
+  font-size: 0.75rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-family: 'Cormorant Garamond', serif;
+  margin-bottom: 16px;
+}
+
+.hero-name {
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 700;
+  line-height: 1.1;
+  background: linear-gradient(135deg, var(--text), var(--text-dim));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 16px;
+}
+
+.hero-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+  margin-bottom: 32px;
+}
+
+.hero-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 48px;
+}
+
+.role-tag {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.role-tag:hover {
+  border-color: rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.06);
+  transform: translateY(-2px);
+}
+
+.role-icon {
+  font-size: 1.3rem;
+}
+
+.role-text {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.role-desc {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  font-family: 'Cormorant Garamond', serif;
+}
+
+.hero-cta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.cta-button {
+  padding: 14px 28px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cta-primary {
+  background: var(--accent);
+  color: #0A0A0F;
+  border: none;
+}
+
+.cta-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+.cta-secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--glass-border);
+}
+
+.cta-secondary:hover {
+  border-color: rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.03);
+  transform: translateY(-2px);
+}
+
+/* === Lab Section === */
+.lab-section {
+  padding: 40px 56px;
+}
+
+.lab-header {
+  margin-bottom: 32px;
+}
+
+.lab-title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.2;
+  background: linear-gradient(135deg, var(--text), var(--text-dim));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+
+.lab-subtitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(0.9rem, 2vw, 1.2rem);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+}
+
+/* Recipe Display */
+.recipe-display {
+  opacity: 1;
+  transition: opacity 0.4s ease;
+}
+.recipe-display.fading { opacity: 0; }
+
+.recipe-category {
+  font-size: 0.65rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-family: 'Cormorant Garamond', serif;
+  margin-bottom: 12px;
+}
+
+.recipe-name {
+  font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, var(--text), var(--text-dim));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.recipe-name-en {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(0.9rem, 2vw, 1.2rem);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  margin-bottom: 32px;
+}
+
+.recipe-desc {
+  font-size: 1.05rem;
+  line-height: 2;
+  color: rgba(232,232,232,0.75);
+  max-width: 640px;
+  margin-bottom: 40px;
+  font-weight: 300;
+}
+
+/* === Palette === */
+.palette {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.palette-swatch {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: background 0.5s ease, transform 0.3s ease;
+  cursor: default;
+}
+.palette-swatch:hover { transform: scale(1.15); }
+
+/* === Tone Tags === */
+.tone-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 48px;
+}
+.tone-tag {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  padding: 5px 14px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  color: var(--text-dim);
+  font-family: 'Cormorant Garamond', serif;
+  transition: all 0.3s ease;
+}
+
+/* === Art Coordinates === */
+.art-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-bottom: 48px;
+}
+
+.art-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 24px;
+  transition: all 0.4s ease;
+}
+.art-card:hover {
+  border-color: rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.06);
+}
+
+.art-card-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-family: 'Cormorant Garamond', serif;
+  margin-bottom: 16px;
+}
+
+.album-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.album-cover-placeholder {
+  width: 72px; height: 72px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.55rem;
+  text-align: center;
+  padding: 6px;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.4;
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: background 0.5s ease;
+  flex-shrink: 0;
+}
+.album-name {
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.track-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.85rem;
+  color: rgba(232,232,232,0.7);
+}
+.track-icon {
+  font-size: 0.7rem;
+  opacity: 0.4;
+}
+
+/* === Match Confidence === */
+.match-confidence {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.match-pct {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.4rem;
+  font-weight: 300;
+  color: var(--text);
+  line-height: 1;
+}
+.match-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-family: 'Cormorant Garamond', serif;
+}
+
+/* === Runner Up Cards === */
+.runners {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  margin-bottom: 32px;
+}
+.runner-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  max-width: 220px;
+}
+.runner-card:hover {
+  border-color: rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.07);
+  transform: translateY(-2px);
+}
+.runner-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.runner-category {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  letter-spacing: 0.15em;
+  margin-bottom: 6px;
+}
+.runner-pct {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  font-weight: 300;
+  color: var(--text-dim);
+}
+
+/* Booking Button */
+.booking-section {
+  margin-top: 32px;
+  padding-top: 32px;
+  border-top: 1px solid var(--glass-border);
+}
+
+.booking-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 32px;
+  background: linear-gradient(135deg, var(--accent), rgba(255,255,255,0.1));
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.booking-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  border-color: var(--accent);
+}
+
+.booking-icon {
+  font-size: 1.3rem;
+}
+
+/* === AI Lab Section === */
+.ai-section {
+  padding: 60px 56px;
+}
+
+.ai-header {
+  margin-bottom: 48px;
+}
+
+.ai-title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.2;
+  background: linear-gradient(135deg, #00BCD4, #1A1A2E);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+
+.ai-subtitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(0.9rem, 2vw, 1.2rem);
+  font-weight: 300;
+  font-style: italic;
+  color: #8FA5B8;
+  letter-spacing: 0.08em;
+}
+
+.ai-projects {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px;
+}
+
+.project-card {
+  background: linear-gradient(135deg, rgba(0,188,212,0.05), rgba(26,26,46,0.05));
+  border: 1px solid rgba(0,188,212,0.15);
+  border-radius: 16px;
+  padding: 32px;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.project-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #00BCD4, #1A1A2E);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.project-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0,188,212,0.15);
+  border-color: rgba(0,188,212,0.3);
+}
+
+.project-card:hover::before {
+  opacity: 1;
+}
+
+.project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.project-icon {
+  font-size: 2.5rem;
+  opacity: 0.8;
+}
+
+.project-status {
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-family: 'Cormorant Garamond', serif;
+}
+
+.status-active {
+  background: rgba(0,188,212,0.15);
+  color: #00BCD4;
+  border: 1px solid rgba(0,188,212,0.3);
+}
+
+.status-beta {
+  background: rgba(255,107,53,0.15);
+  color: #FF6B35;
+  border: 1px solid rgba(255,107,53,0.3);
+}
+
+.status-concept {
+  background: rgba(136,136,136,0.15);
+  color: #888;
+  border: 1px solid rgba(136,136,136,0.3);
+}
+
+.project-name {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+.project-desc {
+  font-size: 0.9rem;
+  line-height: 1.8;
+  color: rgba(232,232,232,0.7);
+  margin-bottom: 20px;
+}
+
+.project-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.feature-tag {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  background: rgba(0,188,212,0.1);
+  border: 1px solid rgba(0,188,212,0.2);
+  border-radius: 16px;
+  color: #8FA5B8;
+  font-family: 'Cormorant Garamond', serif;
+}
+
+.project-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.project-button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.project-primary {
+  background: linear-gradient(135deg, #00BCD4, #1A1A2E);
+  color: #0A0A0F;
+  border: none;
+  font-weight: 600;
+}
+
+.project-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.project-secondary {
+  background: transparent;
+  color: #8FA5B8;
+  border: 1px solid rgba(0,188,212,0.3);
+}
+
+.project-secondary:hover {
+  background: rgba(0,188,212,0.1);
+  border-color: rgba(0,188,212,0.5);
+}
+
+/* === Phone Market Section === */
+.phone-section {
+  padding: 60px 56px;
+}
+
+.phone-header {
+  margin-bottom: 48px;
+}
+
+.phone-title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.2;
+  background: linear-gradient(135deg, #C4A265, #8B7355);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+
+.phone-subtitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(0.9rem, 2vw, 1.2rem);
+  font-weight: 300;
+  font-style: italic;
+  color: #A89B8C;
+  letter-spacing: 0.08em;
+}
+
+.phone-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 32px;
+}
+
+.phone-card {
+  background: linear-gradient(135deg, rgba(196,162,101,0.05), rgba(139,115,85,0.05));
+  border: 1px solid rgba(196,162,101,0.15);
+  border-radius: 16px;
+  padding: 32px;
+  transition: all 0.4s ease;
+  position: relative;
+}
+
+.phone-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #C4A265, #8B7355);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.phone-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(196,162,101,0.15);
+  border-color: rgba(196,162,101,0.3);
+}
+
+.phone-card:hover::before {
+  opacity: 1;
+}
+
+.phone-image {
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(135deg, rgba(196,162,101,0.1), rgba(139,115,85,0.1));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  font-size: 4rem;
+  opacity: 0.6;
+}
+
+.phone-name {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.phone-model {
+  font-size: 0.85rem;
+  color: #A89B8C;
+  margin-bottom: 16px;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+}
+
+.phone-specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.spec-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: rgba(232,232,232,0.7);
+}
+
+.spec-icon {
+  font-size: 0.9rem;
+}
+
+.phone-condition {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 10px 16px;
+  background: rgba(196,162,101,0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(196,162,101,0.2);
+}
+
+.condition-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #A89B8C;
+  font-family: 'Cormorant Garamond', serif;
+}
+
+.condition-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #C4A265;
+}
+
+.phone-price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.price-main {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #C4A265;
+  font-family: 'Cormorant Garamond', serif;
+}
+
+.price-unit {
+  font-size: 0.85rem;
+  color: #A89B8C;
+}
+
+.phone-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.phone-button {
+  flex: 1;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.phone-primary {
+  background: linear-gradient(135deg, #C4A265, #8B7355);
+  color: #0A0A0F;
+  border: none;
+  font-weight: 600;
+}
+
+.phone-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.phone-secondary {
+  background: transparent;
+  color: #A89B8C;
+  border: 1px solid rgba(196,162,101,0.3);
+}
+
+.phone-secondary:hover {
+  background: rgba(196,162,101,0.1);
+  border-color: rgba(196,162,101,0.5);
+}
+
+/* === Contact Section === */
+.contact-section {
+  padding: 60px 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.contact-header {
+  margin-bottom: 48px;
+  text-align: center;
+}
+
+.contact-title {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 700;
+  line-height: 1.2;
+  background: linear-gradient(135deg, var(--text), var(--text-dim));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 16px;
+}
+
+.contact-subtitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 32px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.contact-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+  transition: all 0.4s ease;
+  cursor: pointer;
+}
+
+.contact-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+  border-color: rgba(255,255,255,0.2);
+}
+
+.contact-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  opacity: 0.8;
+}
+
+.contact-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.contact-value {
+  font-size: 0.95rem;
+  color: var(--text-dim);
+  word-break: break-all;
+}
+
+/* === Footer === */
+.footer {
+  padding: 24px 0;
+  margin-top: 48px;
+  border-top: 1px solid var(--glass-border);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: rgba(255,255,255,0.2);
+  font-family: 'Cormorant Garamond', serif;
+  text-align: center;
+}
+
+/* === Responsive === */
+@media (max-width: 1024px) {
+  .app {
+    grid-template-columns: 280px 1fr;
+  }
+  .section { padding: 40px 32px; }
+  .art-section { grid-template-columns: 1fr; }
+  .hero-roles { gap: 12px; }
+  .role-tag { padding: 10px 16px; }
+}
+
+@media (max-width: 768px) {
+  .app {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: auto;
+    max-height: 80vh;
+    border-right: none;
+    border-bottom: 1px solid var(--glass-border);
+    z-index: 100;
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+  }
+  .sidebar.open {
+    transform: translateY(0);
+  }
+  .section { padding: 32px 20px; }
+  .runners { flex-direction: column; }
+  .runner-card { max-width: 100%; }
+  .hero-cta { flex-direction: column; }
+  .cta-button { justify-content: center; }
+  .ai-projects, .phone-grid { grid-template-columns: 1fr; }
+  .contact-grid { grid-template-columns: 1fr; }
+}
+
+/* Mobile Menu Toggle */
+.mobile-menu-toggle {
+  display: none;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 101;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.mobile-menu-icon {
+  font-size: 1.2rem;
+}
+
+.mobile-menu-text {
+  font-size: 0.8rem;
+  color: var(--text);
+}
+</style>
+</head>
+<body>
+
+<!-- Mobile Menu Toggle -->
+<div class="mobile-menu-toggle" id="mobile-menu-toggle">
+  <span class="mobile-menu-icon">☰</span>
+  <span class="mobile-menu-text">导航</span>
+</div>
+
+<div class="ambient" id="ambient"></div>
+
+<div class="app">
+  <!-- Global Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">情绪实验室</div>
+      <div class="sidebar-subtitle">Mood Laboratory · 个人主页</div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-section">
+      <div class="nav-label">快速导航 · Quick Nav</div>
+      
+      <div class="nav-item active" data-section="hero">
+        <span class="nav-icon">🏠</span>
+        <div>
+          <div class="nav-text">首页</div>
+          <div class="nav-desc">关于我 · Hero</div>
+        </div>
+      </div>
+      
+      <div class="nav-item" data-section="lab">
+        <span class="nav-icon">⚗</span>
+        <div>
+          <div class="nav-text">风格实验室</div>
+          <div class="nav-desc">摄影风格调配 · The Lab</div>
+        </div>
+      </div>
+      
+      <div class="nav-item" data-section="ai">
+        <span class="nav-icon">🤖</span>
+        <div>
+          <div class="nav-text">AI 实验室</div>
+          <div class="nav-desc">AI 工具项目 · AI Lab</div>
+        </div>
+      </div>
+      
+      <div class="nav-item" data-section="phone">
+        <span class="nav-icon">📱</span>
+        <div>
+          <div class="nav-text">二手机精选</div>
+          <div class="nav-desc">品质二手 · Phone Market</div>
+        </div>
+      </div>
+      
+      <div class="nav-item" data-section="contact">
+        <span class="nav-icon">📬</span>
+        <div>
+          <div class="nav-text">联系方式</div>
+          <div class="nav-desc">联系我 · Contact</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab Mixer (only visible when lab section is active) -->
+    <div class="lab-mixer-section" id="lab-mixer-section">
+      <div class="sidebar-title" style="font-size: 0.72rem;">感官调配台 &nbsp;·&nbsp; The Mixer</div>
+
+      <!-- Sound -->
+      <div class="mixer-section">
+        <div class="mixer-label-cn">音色</div>
+        <div class="mixer-label">Sound</div>
+        <select class="mixer-select" id="sound-select">
+          <option value="tape-hiss">磁带底噪 · Tape Hiss</option>
+          <option value="digital-distortion">数字失真人声 · Digital Distortion</option>
+          <option value="industrial-metal">工业金属采样 · Industrial Metal</option>
+          <option value="felt-piano">毛毡消音钢琴 · Felt Piano</option>
+          <option value="vinyl-crackle">黑胶唱片底噪 · Vinyl Crackle</option>
+          <option value="citypop-bass">City Pop 贝斯律动 · City Pop Bass</option>
+          <option value="drum-pulse">低频鼓机脉冲 · Drum Machine Pulse</option>
+        </select>
+        <div class="waveform" id="waveform"></div>
+      </div>
+
+      <!-- Touch -->
+      <div class="mixer-section">
+        <div class="mixer-label-cn">触感</div>
+        <div class="mixer-label">Touch / Scent</div>
+        <select class="mixer-select" id="touch-select">
+          <option value="dusty-pages">灰尘旧书页 · Dusty Old Pages</option>
+          <option value="frost-glass">结霜车窗玻璃 · Frosted Window</option>
+          <option value="rusty-iron">生锈铸铁管道 · Rusty Iron Pipes</option>
+          <option value="birch-moss">白桦木与苔藓 · Birchwood & Moss</option>
+          <option value="old-album">泛黄旧相册 · Yellowed Album</option>
+          <option value="pool-water">冰凉泳池水面 · Cool Pool Water</option>
+          <option value="black-velvet">黑色天鹅绒 · Black Velvet</option>
+        </select>
+      </div>
+
+      <!-- Light -->
+      <div class="mixer-section">
+        <div class="mixer-label-cn">光影</div>
+        <div class="mixer-label">Light</div>
+        <select class="mixer-select" id="light-select">
+          <option value="amber-sunset">昏黄落日余晖 · Amber Sunset</option>
+          <option value="overexposed-winter">过曝冬日白光 · Overexposed Winter</option>
+          <option value="glitch-neon">故障霓虹灯 · Glitching Neon</option>
+          <option value="arctic-diffused">北极散射日光 · Arctic Diffused</option>
+          <option value="linen-warm">亚麻帘漫射暖光 · Warm Linen Glow</option>
+          <option value="noon-hard">正午直射硬光 · Noon Hard Light</option>
+          <option value="rembrandt-side">伦勃朗式侧光 · Rembrandt Side Light</option>
+        </select>
+      </div>
+
+      <!-- Mix Ratio -->
+      <div class="mix-ratio">
+        <div class="mix-ratio-title">混合比例 · Mix Ratio</div>
+        <div class="ratio-bar-wrap">
+          <span class="ratio-label">音</span>
+          <div class="ratio-track"><div class="ratio-fill" id="ratio-sound" style="width:33%"></div></div>
+        </div>
+        <div class="ratio-bar-wrap">
+          <span class="ratio-label">触</span>
+          <div class="ratio-track"><div class="ratio-fill" id="ratio-touch" style="width:33%"></div></div>
+        </div>
+        <div class="ratio-bar-wrap">
+          <span class="ratio-label">光</span>
+          <div class="ratio-track"><div class="ratio-fill" id="ratio-light" style="width:33%"></div></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Hero Section -->
+    <section class="section hero-section" id="hero-section">
+      <div>
+        <div class="hero-greeting">欢迎来到我的个人空间</div>
+        <h1 class="hero-name">情绪实验室</h1>
+        <p class="hero-title">摄影师 · AI 开发者 · 手机交易商</p>
+        
+        <div class="hero-roles">
+          <div class="role-tag">
+            <span class="role-icon">📷</span>
+            <div>
+              <div class="role-text">摄影师</div>
+              <div class="role-desc">用镜头捕捉情绪</div>
+            </div>
+          </div>
+          <div class="role-tag">
+            <span class="role-icon">🤖</span>
+            <div>
+              <div class="role-text">AI 开发者</div>
+              <div class="role-desc">构建智能工具</div>
+            </div>
+          </div>
+          <div class="role-tag">
+            <span class="role-icon">📱</span>
+            <div>
+              <div class="role-text">手机交易商</div>
+              <div class="role-desc">品质二手设备</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="hero-cta">
+          <a href="#lab-section" class="cta-button cta-primary">
+            <span>🎨</span>
+            <span>探索风格实验室</span>
+          </a>
+          <a href="#contact-section" class="cta-button cta-secondary">
+            <span>📬</span>
+            <span>联系我</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Lab Section -->
+    <section class="section lab-section" id="lab-section">
+      <div class="lab-header">
+        <h2 class="lab-title">风格实验室</h2>
+        <p class="lab-subtitle">The Lab · 调配你的专属摄影风格</p>
+      </div>
+      
+      <div class="recipe-display" id="recipe-display">
+        <!-- Match Confidence -->
+        <div class="match-confidence">
+          <span class="match-pct" id="match-pct">96%</span>
+          <span class="match-label">Match Confidence</span>
+        </div>
+
+        <!-- Recipe Info -->
+        <div class="recipe-category" id="recipe-category">怀旧叙事</div>
+        <h1 class="recipe-name" id="recipe-name">半岛铁盒</h1>
+        <div class="recipe-name-en" id="recipe-name-en">Peninsula Tin Box</div>
+        <p class="recipe-desc" id="recipe-desc">
+          阳光斜射进堆满杂物的旧书店，空气中的微尘在逆光中飞舞，时间仿佛在此刻停滞。
+        </p>
+
+        <!-- Palette -->
+        <div class="palette" id="palette"></div>
+
+        <!-- Tone Tags -->
+        <div class="tone-tags" id="tone-tags"></div>
+
+        <!-- Art Coordinates -->
+        <div class="art-section">
+          <div class="art-card">
+            <div class="art-card-label">专辑参考 · Album References</div>
+            <div id="albums-list"></div>
+          </div>
+          <div class="art-card">
+            <div class="art-card-label">推荐曲目 · Recommended Tracks</div>
+            <div id="tracks-list"></div>
+          </div>
+        </div>
+
+        <!-- Runners Up -->
+        <div class="art-card-label" style="margin-bottom:12px;">其他匹配 · Also Matched</div>
+        <div class="runners" id="runners"></div>
+        
+        <!-- Booking Button -->
+        <div class="booking-section">
+          <a href="#contact-section" class="booking-button" id="booking-button">
+            <span class="booking-icon">📅</span>
+            <span>预约以此风格拍摄</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI Lab Section -->
+    <section class="section ai-section" id="ai-section">
+      <div class="ai-header">
+        <h2 class="ai-title">AI 实验室</h2>
+        <p class="ai-subtitle">AI Lab · 探索人工智能的无限可能</p>
+      </div>
+      
+      <div class="ai-projects" id="ai-projects">
+        <!-- AI projects will be rendered here by JavaScript -->
+      </div>
+    </section>
+
+    <!-- Phone Market Section -->
+    <section class="section phone-section" id="phone-section">
+      <div class="phone-header">
+        <h2 class="phone-title">二手机精选</h2>
+        <p class="phone-subtitle">Phone Market · 品质二手，物超所值</p>
+      </div>
+      
+      <div class="phone-grid" id="phone-grid">
+        <!-- Phones will be rendered here by JavaScript -->
+      </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="section contact-section" id="contact-section">
+      <div class="contact-header">
+        <h2 class="contact-title">联系方式</h2>
+        <p class="contact-subtitle">无论您有任何需求，欢迎随时联系我</p>
+      </div>
+      
+      <div class="contact-grid">
+        <div class="contact-card" onclick="window.location.href='mailto:example@example.com'">
+          <div class="contact-icon">📧</div>
+          <div class="contact-name">电子邮箱</div>
+          <div class="contact-value">example@example.com</div>
+        </div>
+        
+        <div class="contact-card" onclick="window.open('https://weixin.qq.com/', '_blank')">
+          <div class="contact-icon">💬</div>
+          <div class="contact-name">微信</div>
+          <div class="contact-value">请扫描二维码或搜索添加</div>
+        </div>
+        
+        <div class="contact-card" onclick="window.open('https://www.xiaohongshu.com/', '_blank')">
+          <div class="contact-icon">📚</div>
+          <div class="contact-name">小红书</div>
+          <div class="contact-value">关注我获取更多摄影作品</div>
+        </div>
+        
+        <div class="contact-card" onclick="window.open('https://github.com/', '_blank')">
+          <div class="contact-icon">💻</div>
+          <div class="contact-name">GitHub</div>
+          <div class="contact-value">查看我的代码项目</div>
+        </div>
+      </div>
+      
+      <div class="footer">
+        情绪实验室 v1.0 · Mood Laboratory · 2024
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+// ===== DATA SECTION - 数据分离，方便修改 =====
+// 摄影风格配方数据
+const recipes = [
+  {
+    id: 'peninsula-tin',
+    name: '半岛铁盒',
+    nameEn: 'Peninsula Tin Box',
+    category: '怀旧叙事',
+    colors: ['#C4A265','#8B7355','#D4A76A','#6B5B3E'],
+    tones: ['低对比度','高噪点','黄褐色暖调','16:9 宽画幅','叙事感'],
+    albums: ['周杰伦《八度空间》','早期华语流行乐磁带封面'],
+    tracks: ['《反方向的钟》','《爱在西元前》'],
+    desc: '阳光斜射进堆满杂物的旧书店，空气中的微尘在逆光中飞舞，时间仿佛在此刻停滞。'
+  },
+  {
+    id: 'ice-echo',
+    name: '冰面下的回声',
+    nameEn: 'Echo Beneath the Ice',
+    category: '清冷疏离',
+    colors: ['#E8EDF2','#B0C4D8','#8FA5B8','#D3DCE6'],
+    tones: ['高调曝光','极低饱和度','冷灰蓝偏移','负空间留白','前景失焦'],
+    albums: ['Radiohead《OK Computer》','Bon Iver《For Emma, Forever Ago》'],
+    tracks: ['Everything In Its Right Place','Skinny Love'],
+    desc: '空旷的郊区停车场，一个人的背影正消失在过曝的白色尽头。呼出的雾气是画面中唯一的温度证据。'
+  },
+  {
+    id: 'neon-rust',
+    name: '霓虹锈蚀',
+    nameEn: 'Neon Corrosion',
+    category: '赛博工业',
+    colors: ['#00BCD4','#FF6B35','#1A1A2E','#E94560'],
+    tones: ['高对比度硬光','青橙互补色','锐利几何阴影','色差噪点','2.39:1 超宽幅'],
+    albums: ['Nine Inch Nails《The Downward Spiral》','Perturbator《Dangerous Days》'],
+    tracks: ['Closer','Tears in Rain (Vangelis)'],
+    desc: '雨夜工业区的高架桥下，一盏故障霓虹灯以不规则频率闪烁青红光。积水中映出倒置的扭曲城市。'
+  },
+  {
+    id: 'birch-breath',
+    name: '白桦呼吸',
+    nameEn: 'Birch Breath',
+    category: '北欧极简',
+    colors: ['#F5F0EB','#D4C5B5','#E8E0D8','#A89B8C'],
+    tones: ['极简构图','大面积负空间','自然灰调','米白基底','柔焦去锐化'],
+    albums: ['Sigur Rós《( )》','Ólafur Arnalds《Island Songs》'],
+    tracks: ['Svefn-g-englar','Near Light'],
+    desc: '一间只放置了一把温莎椅的全白房间，窗外是没有尽头的雪原。光线不像照射，更像水一样缓慢漫进室内。'
+  },
+  {
+    id: 'faded-postcard',
+    name: '褪色明信片',
+    nameEn: 'Faded Postcard',
+    category: '怀旧叙事',
+    colors: ['#E8A87C','#D4956B','#C17B5A','#A0522D'],
+    tones: ['Kodak Gold 200','自然过曝','明显暗角','橙红暖偏移','胶片颗粒'],
+    albums: ['Fleetwood Mac《Rumours》','Lana Del Rey《Born to Die》'],
+    tracks: ['Dreams','Video Games'],
+    desc: '70年代加州太平洋海岸公路旁的汽车旅馆黄昏，阳光把一切都染成蜜糖色，远处的公路延伸到热浪蒸腾的地平线。'
+  },
+  {
+    id: 'tropical-gravity',
+    name: '热带引力',
+    nameEn: 'Tropical Gravity',
+    category: '夏日多巴胺',
+    colors: ['#0047AB','#FF69B4','#FFE135','#00CED1'],
+    tones: ['高饱和度','硬光硬影','Y2K 质感','撞色色块','闪光灯红眼'],
+    albums: ['竹内まりや《Variety》','Dua Lipa《Future Nostalgia》'],
+    tracks: ['Plastic Love','Levitating'],
+    desc: '棕榈树下的露天泳池派对正午时分，阳光穿透玻璃杯把液体照得像熔化的宝石。水面的反光在白色天花板上疯狂跳舞。'
+  },
+  {
+    id: 'velvet-abyss',
+    name: '天鹅绒深渊',
+    nameEn: 'Velvet Abyss',
+    category: '暗黑电影质感',
+    colors: ['#1A0A0A','#8B0000','#2C1810','#4A0E0E'],
+    tones: ['极低调布光','深黑 80%','Chiaroscuro','单色双色调','变形宽银幕'],
+    albums: ['Massive Attack《Mezzanine》','The Weeknd《After Hours》'],
+    tracks: ['Angel','After Hours'],
+    desc: '午夜空旷的酒店走廊尽头，一束从半掩房门漏出的暗红色光线像刀一样切开黑暗。走廊地毯上有烟雾在缓缓翻涌。'
+  }
+];
+
+// AI 项目数据
+const AI_Projects = [
+  {
+    id: 'smart-photo-assistant',
+    name: '智能摄影助手',
+    icon: '📸',
+    status: 'active',
+    desc: '基于 AI 的摄影风格推荐和后期处理助手。分析您的照片，自动推荐最佳的调色方案和构图建议。',
+    features: ['风格识别', '智能调色', '构图分析', '批量处理'],
+    actions: [
+      { label: '立即体验', type: 'primary', link: '#' },
+      { label: '查看文档', type: 'secondary', link: '#' }
+    ]
+  },
+  {
+    id: 'mood-agent',
+    name: '情绪分析 Agent',
+    icon: '🎭',
+    status: 'beta',
+    desc: '一个能够理解人类情绪的智能 Agent。通过文本分析、语音识别和表情检测，精准捕捉用户的情绪状态。',
+    features: ['文本情绪分析', '语音情感识别', '表情检测', '多模态融合'],
+    actions: [
+      { label: '申请 Beta 测试', type: 'primary', link: '#' },
+      { label: '技术架构', type: 'secondary', link: '#' }
+    ]
+  },
+  {
+    id: 'content-generator',
+    name: '内容生成引擎',
+    icon: '✍️',
+    status: 'active',
+    desc: '一站式内容创作平台。从文案到图片，从视频脚本到社交媒体帖子，AI 助您高效创作。',
+    features: ['文案撰写', '图片生成', '视频脚本', '社交媒体'],
+    actions: [
+      { label: '开始创作', type: 'primary', link: '#' },
+      { label: '作品展示', type: 'secondary', link: '#' }
+    ]
+  },
+  {
+    id: 'code-assistant',
+    name: '代码智能助手',
+    icon: '💻',
+    status: 'concept',
+    desc: '专为开发者设计的 AI 编程助手。理解代码意图，提供智能补全、错误检测和重构建议。',
+    features: ['智能补全', '错误检测', '代码重构', '文档生成'],
+    actions: [
+      { label: '关注进展', type: 'primary', link: '#' },
+      { label: '技术栈', type: 'secondary', link: '#' }
+    ]
+  }
+];
+
+// 二手机库存数据
+const Phone_Stock = [
+  {
+    id: 'iphone-15-pro-max',
+    name: 'iPhone 15 Pro Max',
+    model: 'A3108',
+    icon: '🍎',
+    specs: ['256GB', '深空黑', 'A17 Pro 芯片'],
+    condition: '99 新',
+    conditionDesc: '几乎全新，使用时间不超过 1 个月，无任何划痕',
+    price: 8999,
+    originalPrice: 9999,
+    features: ['支持验机', '7 天无理由', '一年质保']
+  },
+  {
+    id: 'samsung-s24-ultra',
+    name: 'Samsung Galaxy S24 Ultra',
+    model: 'SM-S9280',
+    icon: '📱',
+    specs: ['512GB', '钛灰色', '骁龙 8 Gen 3'],
+    condition: '95 新',
+    conditionDesc: '轻微使用痕迹，屏幕无划痕，电池健康度 95%',
+    price: 6999,
+    originalPrice: 8999,
+    features: ['支持验机', '7 天无理由', '半年质保']
+  },
+  {
+    id: 'iphone-14-pro',
+    name: 'iPhone 14 Pro',
+    model: 'A2892',
+    icon: '🍎',
+    specs: ['128GB', '暗夜紫', 'A16 仿生'],
+    condition: '95 新',
+    conditionDesc: '正常使用痕迹，屏幕完好，电池健康度 92%',
+    price: 4999,
+    originalPrice: 7999,
+    features: ['支持验机', '7 天无理由', '半年质保']
+  },
+  {
+    id: 'xiaomi-14-ultra',
+    name: 'Xiaomi 14 Ultra',
+    model: '24031PN0DC',
+    icon: '🔴',
+    specs: ['256GB', '黑色', '骁龙 8 Gen 3'],
+    condition: '98 新',
+    conditionDesc: '几乎全新，仅拆封未使用，配件齐全',
+    price: 4299,
+    originalPrice: 5999,
+    features: ['支持验机', '7 天无理由', '一年质保']
+  }
+];
+
+// ===== WEIGHT MATRIX =====
+// Each option maps to recipe indices with weights
+const weightMap = {
+  sound: {
+    'tape-hiss':           [{i:0,w:1.0},{i:4,w:0.4},{i:3,w:0.15}],
+    'digital-distortion':  [{i:1,w:1.0},{i:2,w:0.3},{i:6,w:0.15}],
+    'industrial-metal':    [{i:2,w:1.0},{i:6,w:0.35},{i:1,w:0.1}],
+    'felt-piano':          [{i:3,w:1.0},{i:1,w:0.3},{i:4,w:0.2}],
+    'vinyl-crackle':       [{i:4,w:1.0},{i:0,w:0.45},{i:3,w:0.15}],
+    'citypop-bass':        [{i:5,w:1.0},{i:4,w:0.2},{i:0,w:0.1}],
+    'drum-pulse':          [{i:6,w:1.0},{i:2,w:0.4},{i:1,w:0.1}]
+  },
+  touch: {
+    'dusty-pages':    [{i:0,w:1.0},{i:4,w:0.4},{i:3,w:0.1}],
+    'frost-glass':    [{i:1,w:1.0},{i:3,w:0.3},{i:6,w:0.15}],
+    'rusty-iron':     [{i:2,w:1.0},{i:6,w:0.35},{i:1,w:0.1}],
+    'birch-moss':     [{i:3,w:1.0},{i:1,w:0.25},{i:4,w:0.15}],
+    'old-album':      [{i:4,w:1.0},{i:0,w:0.5},{i:3,w:0.1}],
+    'pool-water':     [{i:5,w:1.0},{i:1,w:0.2},{i:4,w:0.1}],
+    'black-velvet':   [{i:6,w:1.0},{i:2,w:0.3},{i:3,w:0.1}]
+  },
+  light: {
+    'amber-sunset':       [{i:0,w:1.0},{i:4,w:0.5},{i:5,w:0.1}],
+    'overexposed-winter': [{i:1,w:1.0},{i:3,w:0.35},{i:6,w:0.1}],
+    'glitch-neon':        [{i:2,w:1.0},{i:6,w:0.3},{i:5,w:0.15}],
+    'arctic-diffused':    [{i:3,w:1.0},{i:1,w:0.4},{i:4,w:0.1}],
+    'linen-warm':         [{i:4,w:1.0},{i:0,w:0.45},{i:3,w:0.15}],
+    'noon-hard':          [{i:5,w:1.0},{i:2,w:0.2},{i:0,w:0.1}],
+    'rembrandt-side':     [{i:6,w:1.0},{i:2,w:0.25},{i:4,w:0.15}]
+  }
+};
+
+// ===== DOM REFS =====
+const soundSel = document.getElementById('sound-select');
+const touchSel = document.getElementById('touch-select');
+const lightSel = document.getElementById('light-select');
+const display = document.getElementById('recipe-display');
+const ambientEl = document.getElementById('ambient');
+const sidebar = document.getElementById('sidebar');
+const labMixerSection = document.getElementById('lab-mixer-section');
+const navItems = document.querySelectorAll('.nav-item');
+const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+
+// ===== WAVEFORM INIT =====
+const waveformEl = document.getElementById('waveform');
+const barCount = 24;
+for (let i = 0; i < barCount; i++) {
+  const bar = document.createElement('div');
+  bar.className = 'waveform-bar';
+  bar.style.height = '4px';
+  waveformEl.appendChild(bar);
+}
+const waveformBars = waveformEl.querySelectorAll('.waveform-bar');
+
+// Waveform animation
+let waveFrame;
+const waveProfiles = {
+  'tape-hiss':          { speed: 0.03, amp: 8,  base: 3, jitter: 2 },
+  'digital-distortion': { speed: 0.08, amp: 14, base: 2, jitter: 6 },
+  'industrial-metal':   { speed: 0.06, amp: 18, base: 4, jitter: 4 },
+  'felt-piano':         { speed: 0.015,amp: 10, base: 2, jitter: 1 },
+  'vinyl-crackle':      { speed: 0.025,amp: 7,  base: 3, jitter: 3 },
+  'citypop-bass':       { speed: 0.05, amp: 12, base: 4, jitter: 2 },
+  'drum-pulse':         { speed: 0.04, amp: 16, base: 3, jitter: 5 }
+};
+let waveTime = 0;
+
+function animateWaveform(profile) {
+  cancelAnimationFrame(waveFrame);
+  const p = waveProfiles[profile] || waveProfiles['tape-hiss'];
+  function tick() {
+    waveTime += p.speed;
+    waveformBars.forEach((bar, i) => {
+      const h = p.base + Math.abs(Math.sin(waveTime + i * 0.4)) * p.amp
+                + Math.random() * p.jitter;
+      bar.style.height = h + 'px';
+    });
+    waveFrame = requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+// ===== MATCHING ENGINE =====
+function computeScores(soundVal, touchVal, lightVal) {
+  const scores = new Array(recipes.length).fill(0);
+  const maxPossible = 3.0;
+
+  const sw = weightMap.sound[soundVal] || [];
+  sw.forEach(({i,w}) => scores[i] += w);
+  const tw = weightMap.touch[touchVal] || [];
+  tw.forEach(({i,w}) => scores[i] += w);
+  const lw = weightMap.light[lightVal] || [];
+  lw.forEach(({i,w}) => scores[i] += w);
+
+  const topIdx = scores.indexOf(Math.max(...scores));
+  const sContrib = sw.find(x => x.i === topIdx)?.w || 0;
+  const tContrib = tw.find(x => x.i === topIdx)?.w || 0;
+  const lContrib = lw.find(x => x.i === topIdx)?.w || 0;
+  const totalContrib = sContrib + tContrib + lContrib || 1;
+
+  return {
+    scores: scores.map(s => Math.min(Math.round((s / maxPossible) * 100), 99)),
+    ratios: {
+      sound: sContrib / totalContrib,
+      touch: tContrib / totalContrib,
+      light: lContrib / totalContrib
+    }
+  };
+}
+
+function getRanked(scores) {
+  return scores
+    .map((pct, i) => ({ idx: i, pct }))
+    .sort((a, b) => b.pct - a.pct);
+}
+
+// ===== RENDER =====
+function render() {
+  const sv = soundSel.value;
+  const tv = touchSel.value;
+  const lv = lightSel.value;
+
+  const { scores, ratios } = computeScores(sv, tv, lv);
+  const ranked = getRanked(scores);
+  const top = recipes[ranked[0].idx];
+  const topPct = ranked[0].pct;
+
+  animateWaveform(sv);
+
+  waveformBars.forEach(bar => bar.style.background = top.colors[0]);
+
+  document.getElementById('ratio-sound').style.width = (ratios.sound * 100) + '%';
+  document.getElementById('ratio-sound').style.background = top.colors[0];
+  document.getElementById('ratio-touch').style.width = (ratios.touch * 100) + '%';
+  document.getElementById('ratio-touch').style.background = top.colors[1] || top.colors[0];
+  document.getElementById('ratio-light').style.width = (ratios.light * 100) + '%';
+  document.getElementById('ratio-light').style.background = top.colors[2] || top.colors[0];
+
+  ambientEl.style.setProperty('--ambient-1', top.colors[0]);
+  ambientEl.style.setProperty('--ambient-2', top.colors[2] || top.colors[1]);
+
+  display.classList.add('fading');
+  setTimeout(() => {
+    document.getElementById('match-pct').textContent = topPct + '%';
+
+    document.getElementById('recipe-category').textContent = top.category;
+    document.getElementById('recipe-name').textContent = top.name;
+    document.getElementById('recipe-name-en').textContent = top.nameEn;
+    document.getElementById('recipe-desc').textContent = top.desc;
+
+    const paletteEl = document.getElementById('palette');
+    paletteEl.innerHTML = '';
+    top.colors.forEach(c => {
+      const sw = document.createElement('div');
+      sw.className = 'palette-swatch';
+      sw.style.background = c;
+      sw.title = c;
+      paletteEl.appendChild(sw);
+    });
+
+    const tagsEl = document.getElementById('tone-tags');
+    tagsEl.innerHTML = '';
+    top.tones.forEach(t => {
+      const tag = document.createElement('span');
+      tag.className = 'tone-tag';
+      tag.textContent = t;
+      tagsEl.appendChild(tag);
+    });
+
+    const albumsEl = document.getElementById('albums-list');
+    albumsEl.innerHTML = '';
+    top.albums.forEach((a, ai) => {
+      const item = document.createElement('div');
+      item.className = 'album-item';
+      item.innerHTML = `
+        <div class="album-cover-placeholder" style="background:linear-gradient(135deg, ${top.colors[ai % top.colors.length]}33, ${top.colors[(ai+1) % top.colors.length]}22);">
+          ${a.length > 20 ? a.slice(0, 18) + '…' : a}
+        </div>
+        <div class="album-name">${a}</div>
+      `;
+      albumsEl.appendChild(item);
+    });
+
+    const tracksEl = document.getElementById('tracks-list');
+    tracksEl.innerHTML = '';
+    top.tracks.forEach(t => {
+      const item = document.createElement('div');
+      item.className = 'track-item';
+      item.innerHTML = `<span class="track-icon">♪</span> ${t}`;
+      tracksEl.appendChild(item);
+    });
+
+    const runnersEl = document.getElementById('runners');
+    runnersEl.innerHTML = '';
+    ranked.slice(1, 4).forEach(r => {
+      const rec = recipes[r.idx];
+      const card = document.createElement('div');
+      card.className = 'runner-card';
+      card.innerHTML = `
+        <div class="runner-name">${rec.name}</div>
+        <div class="runner-category">${rec.category}</div>
+        <div class="runner-pct">${r.pct}%</div>
+      `;
+      runnersEl.appendChild(card);
+    });
+
+    display.classList.remove('fading');
+  }, 350);
+}
+
+// ===== RENDER AI PROJECTS =====
+function renderAIProjects() {
+  const container = document.getElementById('ai-projects');
+  container.innerHTML = '';
+  
+  AI_Projects.forEach(project => {
+    const statusClass = `status-${project.status}`;
+    const statusText = project.status === 'active' ? '运行中' : 
+                       project.status === 'beta' ? 'Beta 测试' : '概念阶段';
+    
+    const card = document.createElement('div');
+    card.className = 'project-card';
+    card.innerHTML = `
+      <div class="project-header">
+        <div class="project-icon">${project.icon}</div>
+        <span class="project-status ${statusClass}">${statusText}</span>
+      </div>
+      <h3 class="project-name">${project.name}</h3>
+      <p class="project-desc">${project.desc}</p>
+      <div class="project-features">
+        ${project.features.map(f => `<span class="feature-tag">${f}</span>`).join('')}
+      </div>
+      <div class="project-actions">
+        ${project.actions.map(action => `
+          <a href="${action.link}" class="project-button ${action.type === 'primary' ? 'project-primary' : 'project-secondary'}">
+            ${action.label}
+          </a>
+        `).join('')}
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+// ===== RENDER PHONE STOCK =====
+function renderPhoneStock() {
+  const container = document.getElementById('phone-grid');
+  container.innerHTML = '';
+  
+  Phone_Stock.forEach(phone => {
+    const card = document.createElement('div');
+    card.className = 'phone-card';
+    card.innerHTML = `
+      <div class="phone-image">${phone.icon}</div>
+      <h3 class="phone-name">${phone.name}</h3>
+      <p class="phone-model">${phone.model}</p>
+      <div class="phone-specs">
+        ${phone.specs.map(spec => `
+          <div class="spec-item">
+            <span class="spec-icon">⚙</span>
+            <span>${spec}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="phone-condition">
+        <span class="condition-label">成色</span>
+        <span class="condition-value">${phone.condition}</span>
+      </div>
+      <div class="phone-price">
+        <span class="price-main">¥${phone.price}</span>
+        <span class="price-unit">原价 ¥${phone.originalPrice}</span>
+      </div>
+      <div class="phone-actions">
+        <a href="#contact-section" class="phone-button phone-primary">
+          <span>💬</span>
+          <span>咨询详情</span>
+        </a>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+// ===== SECTION NAVIGATION =====
+const sections = {
+  hero: document.getElementById('hero-section'),
+  lab: document.getElementById('lab-section'),
+  ai: document.getElementById('ai-section'),
+  phone: document.getElementById('phone-section'),
+  contact: document.getElementById('contact-section')
+};
+
+// Theme colors for each section
+const sectionThemes = {
+  hero: { ambient1: '#444', ambient2: '#333' },
+  lab: { ambient1: '#444', ambient2: '#333' },
+  ai: { ambient1: '#00BCD4', ambient2: '#1A1A2E' },
+  phone: { ambient1: '#8B7355', ambient2: '#4A3F2E' },
+  contact: { ambient1: '#666', ambient2: '#444' }
+};
+
+function updateAmbientBySection(sectionId) {
+  const theme = sectionThemes[sectionId];
+  if (theme) {
+    ambientEl.style.setProperty('--ambient-1', theme.ambient1);
+    ambientEl.style.setProperty('--ambient-2', theme.ambient2);
+  }
+}
+
+function updateActiveNav(sectionId) {
+  navItems.forEach(item => {
+    item.classList.remove('active');
+    if (item.dataset.section === sectionId) {
+      item.classList.add('active');
+    }
+  });
+  
+  // Show/hide lab mixer section
+  if (sectionId === 'lab') {
+    labMixerSection.classList.add('visible');
+  } else {
+    labMixerSection.classList.remove('visible');
+  }
+}
+
+function scrollToSection(sectionId) {
+  const section = sections[sectionId];
+  if (section) {
+    section.scrollIntoView({ behavior: 'smooth' });
+  }
+  
+  // Close mobile menu if open
+  if (sidebar.classList.contains('open')) {
+    sidebar.classList.remove('open');
+  }
+}
+
+// ===== SCROLL OBSERVER =====
+function createScrollObserver() {
+  const observerOptions = {
+    root: null,
+    rootMargin: '-50% 0px -50% 0px',
+    threshold: 0
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const sectionId = entry.target.id.replace('-section', '');
+        updateActiveNav(sectionId);
+        updateAmbientBySection(sectionId);
+      }
+    });
+  }, observerOptions);
+
+  Object.values(sections).forEach(section => {
+    observer.observe(section);
+  });
+}
+
+// ===== EVENT LISTENERS =====
+soundSel.addEventListener('change', render);
+touchSel.addEventListener('change', render);
+lightSel.addEventListener('change', render);
+
+// Navigation click events
+navItems.forEach(item => {
+  item.addEventListener('click', () => {
+    const sectionId = item.dataset.section;
+    scrollToSection(sectionId);
+  });
+});
+
+// Mobile menu toggle
+mobileMenuToggle.addEventListener('click', () => {
+  sidebar.classList.toggle('open');
+});
+
+// ===== INIT =====
+render();
+renderAIProjects();
+renderPhoneStock();
+createScrollObserver();
+</script>
+</body>
+</html>

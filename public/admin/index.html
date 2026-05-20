@@ -1,0 +1,2007 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理后台 - 回收+销售</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230A0A0A'/><text x='50' y='68' font-family='serif' font-size='52' font-weight='700' fill='%23C4A265' text-anchor='middle'>ML</text></svg>">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0a0a;--card:#161616;--card2:#1e1e1e;--border:#2a2a2a;--text:#e8e3db;--text2:#999;--text3:#666;--accent:#c4a265;--green:#2ecc71;--red:#e74c3c;--blue:#3498db;--radius:12px}
+body{font-family:-apple-system,'PingFang SC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* Header */
+.header{display:flex;justify-content:space-between;align-items:center;padding:12px 24px;background:var(--card);border-bottom:1px solid var(--border);position:fixed;top:0;left:0;right:0;z-index:100}
+.header .title{display:flex;align-items:center;gap:12px}
+.header .title-icon{font-size:1.5rem}
+.header .title-text{font-size:1.1rem;font-weight:600}
+.header .user-info{display:flex;align-items:center;gap:16px}
+.header .username{color:var(--text2);font-size:.9rem}
+.header .logout-btn{padding:8px 16px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:.85rem;cursor:pointer;transition:.2s}
+.header .logout-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* Section Divider */
+.section-divider{padding:8px 20px;font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:8px}
+
+/* App container */
+.app{display:flex;min-height:100vh;padding-top:56px}
+
+/* Sidebar */
+.sidebar{width:220px;background:var(--card);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0;position:fixed;top:56px;bottom:0;left:0;overflow-y:auto}
+.sidebar .nav-item{padding:12px 20px;cursor:pointer;font-size:.9rem;color:var(--text2);transition:.2s;display:flex;align-items:center;gap:8px}
+.sidebar .nav-item:hover,.sidebar .nav-item.active{color:var(--accent);background:rgba(196,162,101,.08)}
+.sidebar .nav-item .badge{background:var(--accent);color:var(--bg);font-size:.7rem;padding:2px 6px;border-radius:10px;margin-left:auto}
+
+/* Main */
+.main{flex:1;padding:24px;overflow-y:auto;margin-left:220px}
+.main h2{font-size:1.3rem;margin-bottom:20px}
+
+/* Login */
+.login-box{max-width:360px;margin:120px auto;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:32px}
+.login-box h2{text-align:center;margin-bottom:24px}
+.login-box input{width:100%;padding:12px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.9rem;margin-bottom:12px;outline:none}
+.login-box input:focus{border-color:var(--accent)}
+.login-box .btn{width:100%;padding:12px;background:var(--accent);color:var(--bg);border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer}
+.login-box .error{color:var(--red);font-size:.85rem;text-align:center;margin-bottom:12px;display:none}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+.card h3{font-size:1rem;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+
+/* Buttons */
+.btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:.85rem;transition:.2s}
+.btn-primary{background:var(--accent);color:var(--bg);font-weight:500}
+.btn-danger{background:var(--red);color:#fff}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text2)}
+.btn-sm{padding:6px 12px;font-size:.8rem}
+
+/* Upload area */
+.upload-area{border:2px dashed var(--border);border-radius:var(--radius);padding:40px;text-align:center;cursor:pointer;transition:.2s;margin-bottom:16px}
+.upload-area:hover{border-color:var(--accent)}
+.upload-area .icon{font-size:2.5rem;margin-bottom:8px}
+.upload-area p{color:var(--text2);font-size:.9rem}
+.upload-area input{display:none}
+.upload-preview{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.upload-preview img{width:120px;height:120px;object-fit:cover;border-radius:8px;border:1px solid var(--border)}
+
+/* Form row */
+.form-row{display:flex;gap:12px;margin-bottom:12px;align-items:center}
+.form-row label{font-size:.85rem;color:var(--text2);min-width:70px}
+.form-row select,.form-row input,.form-row textarea{flex:1;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.85rem;outline:none;font-family:inherit}
+.form-row select:focus,.form-row input:focus,.form-row textarea:focus{border-color:var(--accent)}
+.form-row textarea{min-height:80px;resize:vertical}
+
+/* Table */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{padding:10px 12px;text-align:left;color:var(--text2);border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.03)}
+tr:hover td{background:rgba(255,255,255,.02)}
+td input{width:80px;padding:6px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.8rem;text-align:center}
+td input:focus{border-color:var(--accent)}
+
+/* Badge */
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.75rem;font-weight:500}
+.badge-warranty{background:rgba(46,204,113,.15);color:var(--green)}
+.badge-expired{background:rgba(231,76,60,.15);color:var(--red)}
+.badge-stock{background:rgba(52,152,219,.15);color:var(--blue)}
+
+/* Tabs */
+.tabs{display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid var(--border)}
+.tab{padding:10px 20px;cursor:pointer;font-size:.9rem;color:var(--text2);border-bottom:2px solid transparent;transition:.2s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* Toast */
+.toast{position:fixed;top:80px;right:20px;padding:12px 20px;border-radius:8px;font-size:.9rem;z-index:9999;animation:slideIn .3s ease}
+.toast-success{background:var(--green);color:#fff}
+.toast-error{background:var(--red);color:#fff}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* Section */
+.section{display:none}.section.active{display:block}
+
+/* Deduction form */
+.deduct-form{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px}
+.deduct-form .field{display:flex;flex-direction:column;gap:4px}
+.deduct-form .field label{font-size:.75rem;color:var(--text3)}
+.deduct-form .field input,.deduct-form .field select{padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.85rem;outline:none}
+
+/* Device Card */
+.device-card{display:flex;align-items:center;gap:16px;padding:16px;background:var(--bg);border:1px solid var(--border);border-radius:12px;margin-bottom:12px}
+.device-card:hover{border-color:var(--accent)}
+.device-card .icon{font-size:2rem}
+.device-card .info{flex:1}
+.device-card .name{font-weight:600;margin-bottom:4px}
+.device-card .meta{font-size:.85rem;color:var(--text2)}
+.device-card .actions{display:flex;gap:8px}
+.device-card .btn-edit{background:var(--accent);color:var(--bg);padding:6px 12px;border-radius:6px;border:none;font-size:.8rem;cursor:pointer}
+.device-card .btn-delete{background:var(--red);color:#fff;padding:6px 12px;border-radius:6px;border:none;font-size:.8rem;cursor:pointer}
+
+/* Sales Device Card */
+.sales-device-card{display:flex;align-items:flex-start;gap:16px;padding:16px;background:var(--bg);border:1px solid var(--border);border-radius:12px;margin-bottom:12px}
+.sales-device-card:hover{border-color:var(--accent)}
+.sales-device-card .device-image{width:100px;height:100px;border-radius:8px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:2.5rem;flex-shrink:0;overflow:hidden}
+.sales-device-card .device-image img{width:100%;height:100%;object-fit:cover}
+.sales-device-card .info{flex:1}
+.sales-device-card .name{font-weight:600;margin-bottom:4px;font-size:1rem}
+.sales-device-card .price{color:var(--accent);font-weight:600;font-size:1.1rem;margin-bottom:4px}
+.sales-device-card .meta{font-size:.85rem;color:var(--text2);margin-bottom:8px}
+.sales-device-card .badge{margin-right:6px}
+.sales-device-card .actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.sales-device-card .btn-image{background:var(--blue);color:#fff;padding:6px 12px;border-radius:6px;border:none;font-size:.8rem;cursor:pointer}
+.sales-device-card .btn-pricing{background:var(--green);color:#fff;padding:6px 12px;border-radius:6px;border:none;font-size:.8rem;cursor:pointer}
+
+/* Featured badge */
+.featured-badge{background:var(--accent);color:var(--bg);padding:2px 8px;border-radius:4px;font-size:.7rem;margin-left:8px}
+
+/* Pricing Table */
+.pricing-table td input{width:100%}
+
+/* Edit Modal */
+.modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center}
+.modal.active{display:flex}
+.modal-content{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:600px;width:90%;max-height:90vh;overflow-y:auto}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-header h3{margin:0}
+.modal-close{background:none;border:none;color:var(--text2);font-size:1.5rem;cursor:pointer}
+.modal-close:hover{color:var(--text)}
+
+/* Image Upload Modal */
+.image-upload-area{border:2px dashed var(--border);border-radius:12px;padding:40px;text-align:center;cursor:pointer;transition:.2s}
+.image-upload-area:hover{border-color:var(--accent)}
+.image-upload-area .icon{font-size:3rem;margin-bottom:8px}
+.image-upload-area p{color:var(--text2)}
+.image-upload-area input{display:none}
+.current-image{text-align:center;margin-bottom:16px}
+.current-image img{max-width:200px;max-height:200px;border-radius:8px}
+
+@media(max-width:768px){
+  .sidebar{display:none}
+  .main{margin-left:0;padding:16px}
+  .header{padding:12px 16px}
+  .header .title-text{display:none}
+  .sales-device-card{flex-direction:column;align-items:center;text-align:center}
+  .sales-device-card .actions{flex-direction:row}
+}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="login-view">
+  <div class="login-box">
+    <h2>🔐 管理后台</h2>
+    <div class="error" id="login-error"></div>
+    <input type="text" id="login-user" placeholder="用户名" autocomplete="username">
+    <input type="password" id="login-pass" placeholder="密码" autocomplete="current-password">
+    <button class="btn" onclick="doLogin()">登录</button>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app-view" style="display:none">
+  <!-- Header -->
+  <div class="header">
+    <div class="title">
+      <span class="title-icon">🍎</span>
+      <span class="title-text">回收+销售管理后台</span>
+    </div>
+    <div class="user-info">
+      <span class="username" id="header-username">管理员</span>
+      <button class="logout-btn" onclick="doLogout()">退出登录</button>
+    </div>
+  </div>
+
+  <div class="app">
+    <div class="sidebar">
+      <!-- 销售系统 -->
+      <div class="section-divider">销售系统</div>
+      <div class="nav-item active" data-section="sales-devices" onclick="switchSection('sales-devices')">
+        📱 产品管理
+        <span class="badge">主要</span>
+      </div>
+
+      <!-- 回收系统 -->
+      <div class="section-divider" style="margin-top:20px">回收系统</div>
+      <div class="nav-item" data-section="upload" onclick="switchSection('upload')">📤 上传报价</div>
+      <div class="nav-item" data-section="prices" onclick="switchSection('prices')">💰 报价管理</div>
+      <div class="nav-item" data-section="deductions" onclick="switchSection('deductions')">⚙️ 扣费规则</div>
+      <div class="nav-item" data-section="devices" onclick="switchSection('devices')">📋 设备管理</div>
+
+      <!-- 系统设置 -->
+      <div class="section-divider" style="margin-top:20px">系统设置</div>
+      <div class="nav-item" data-section="settings" onclick="switchSection('settings')">⚙️ 联系我配置</div>
+      <div class="nav-item" data-section="uploads" onclick="switchSection('uploads')">📁 上传管理</div>
+
+      <!-- 感官调配器 -->
+      <div class="section-divider" style="margin-top:20px">感官调配器</div>
+      <div class="nav-item" data-section="mixer-config" onclick="switchSection('mixer-config')">🎛️ 调配器配置</div>
+      <div class="nav-item" data-section="music-mgmt" onclick="switchSection('music-mgmt')">🎵 背景音乐</div>
+    </div>
+
+    <div class="main">
+      <!-- Sales Devices Section -->
+      <div class="section active" id="sec-sales-devices">
+        <h2>📱 产品管理（销售）</h2>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3>产品列表</h3>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-ghost btn-sm" onclick="batchToggleStock(1)">📦 批量上架</button>
+              <button class="btn btn-ghost btn-sm" onclick="batchToggleStock(0)">📥 批量下架</button>
+              <button class="btn btn-primary" onclick="openAddSalesDeviceModal()">➕ 添加产品</button>
+            </div>
+          </div>
+          <div id="sales-devices-list"></div>
+        </div>
+      </div>
+
+      <!-- Upload Section -->
+      <div class="section" id="sec-upload">
+        <h2>📤 上传日报价</h2>
+        <div class="card">
+          <h3>📷 上传报价图片</h3>
+          <div class="form-row">
+            <label>保修类型</label>
+            <select id="upload-warranty">
+              <option value="warranty">在保</option>
+              <option value="expired">过保</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>报价日期</label>
+            <input type="date" id="upload-date" value="">
+          </div>
+          <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
+            <div class="icon">📷</div>
+            <p>点击或拖拽上传报价图片（不限大小）</p>
+            <input type="file" id="file-input" accept="image/*" multiple>
+          </div>
+          <div class="upload-preview" id="upload-preview"></div>
+          <div style="margin-top:12px;display:flex;gap:10px">
+            <button class="btn btn-primary" onclick="doUpload()">上传</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>📋 上传历史</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>文件名</th><th>类型</th><th>日期</th><th>状态</th><th>上传者</th><th>时间</th><th>操作</th></tr></thead>
+              <tbody id="upload-history"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prices Section -->
+      <div class="section" id="sec-prices">
+        <h2>💰 报价管理</h2>
+        <div class="tabs" id="price-tabs"></div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div style="display:flex;gap:10px;align-items:center">
+              <select id="price-filter-device" style="padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.85rem">
+                <option value="">全部设备</option>
+              </select>
+              <select id="price-filter-warranty" style="padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.85rem">
+                <option value="">全部类型</option>
+                <option value="warranty">在保</option>
+                <option value="expired">过保</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="saveAllPrices()">💾 保存修改</button>
+          </div>
+          <div class="table-wrap" id="prices-table-wrap"></div>
+        </div>
+      </div>
+
+      <!-- Deductions Section -->
+      <div class="section" id="sec-deductions">
+        <h2>⚙️ 扣费规则</h2>
+        <div class="card">
+          <h3>➕ 添加规则</h3>
+          <div class="deduct-form">
+            <div class="field">
+              <label>品类</label>
+              <select id="ded-cat">
+                <option>iPhone</option>
+                <option>iPad</option>
+                <option>AirPods</option>
+                <option>Apple Watch</option>
+              </select>
+            </div>
+            <div class="field"><label>规则名称</label><input type="text" id="ded-name" placeholder="如：面容损坏"></div>
+            <div class="field"><label>说明</label><input type="text" id="ded-desc" placeholder="简要描述"></div>
+            <div class="field"><label>扣费金额</label><input type="number" id="ded-amount" placeholder="0"></div>
+            <div class="field"><label>排序</label><input type="number" id="ded-sort" placeholder="0" value="0"></div>
+            <button class="btn btn-primary" onclick="addDeduction()">添加</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>📋 现有规则</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>品类</th><th>规则名称</th><th>说明</th><th>扣费</th><th>排序</th><th>操作</th></tr></thead>
+              <tbody id="deduct-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Devices Section -->
+      <div class="section" id="sec-devices">
+        <h2>📋 设备管理（回收）</h2>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3>设备列表</h3>
+            <button class="btn btn-primary" onclick="openAddDeviceModal()">➕ 添加设备</button>
+          </div>
+          <div id="devices-list"></div>
+        </div>
+      </div>
+
+      <!-- Upload Management Section -->
+      <div class="section" id="sec-uploads">
+        <h2>📁 上传管理</h2>
+        <div class="card">
+          <h3>⚙️ 上传配置</h3>
+          <div class="form-row">
+            <label>每日配额</label>
+            <input type="number" id="upload-quota-setting" placeholder="10">
+          </div>
+          <div class="form-row">
+            <label>上传开关</label>
+            <select id="upload-enabled-setting">
+              <option value="1">开启</option>
+              <option value="0">关闭</option>
+            </select>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:10px">
+            <button class="btn btn-primary" onclick="saveUploadSettings()">💾 保存配置</button>
+            <button class="btn btn-ghost" onclick="resetUploadQuota()">🔄 重置今日配额</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>📋 上传记录</h3>
+          <div style="margin-bottom:12px;display:flex;gap:10px">
+            <input type="date" id="upload-filter-date" style="padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.85rem">
+            <button class="btn btn-ghost btn-sm" onclick="loadUploadRecords()">筛选</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>文件名</th><th>大小</th><th>日期</th><th>时间</th><th>操作</th></tr></thead>
+              <tbody id="upload-records-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Section -->
+      <div class="section" id="sec-settings">
+        <h2>⚙️ 联系我配置</h2>
+        <div class="card">
+          <h3>📞 联系信息</h3>
+          <div class="form-row">
+            <label>显示名称</label>
+            <input type="text" id="setting-contact-name" placeholder="如：自由创作者">
+          </div>
+          <div class="form-row">
+            <label>个人标语</label>
+            <input type="text" id="setting-contact-tagline" placeholder="如：摄影师 · AI 开发者 · 手机交易商">
+          </div>
+          <div class="form-row">
+            <label>手机号码</label>
+            <input type="tel" id="setting-contact-phone" placeholder="如：15279139669">
+          </div>
+          <div class="form-row">
+            <label>电子邮箱</label>
+            <input type="email" id="setting-contact-email" placeholder="如：admin@example.com">
+          </div>
+          <div class="form-row">
+            <label>微信号</label>
+            <input type="text" id="setting-contact-wechat" placeholder="如：your_wechat_id">
+          </div>
+          <div class="form-row">
+            <label>头像表情</label>
+            <input type="text" id="setting-contact-avatar" placeholder="如：👨‍💻">
+          </div>
+          <div class="form-row">
+            <label>微信二维码</label>
+            <div style="display:flex;gap:10px;align-items:flex-start;">
+              <div id="qr-preview" style="width:150px;height:150px;border:2px dashed var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:0.8rem;">
+                暂无二维码
+              </div>
+              <div style="flex:1;">
+                <input type="file" id="qr-image-input" accept="image/*" style="display:none;">
+                <button class="btn btn-ghost" onclick="document.getElementById('qr-image-input').click()">📷 选择二维码图片</button>
+                <p style="font-size:0.75rem;color:var(--text2);margin-top:8px;">
+                  支持 JPG、PNG、GIF 格式，最大 5MB
+                </p>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:20px;display:flex;gap:10px">
+            <button class="btn btn-primary" onclick="saveSettings()">💾 保存设置</button>
+            <button class="btn btn-ghost" onclick="loadSettings()">🔄 刷新</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>⚠️ 注意</h3>
+           <p style="color:var(--text2);font-size:.85rem;line-height:1.6">
+            修改联系信息后，需要刷新主页才能看到更新。<br>
+            手机号码将显示在主页的"回收估价"结果页面和"联系我"部分。
+          </p>
+        </div>
+      </div>
+
+      <!-- Mixer Config Section -->
+      <div class="section" id="sec-mixer-config">
+        <h2>🎛️ 感官调配器配置</h2>
+        <div id="mixer-dimensions-list"></div>
+      </div>
+
+      <!-- Music Management Section -->
+      <div class="section" id="sec-music-mgmt">
+        <h2>🎵 背景音乐管理</h2>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3>本地音乐库</h3>
+            <a href="https://freesound.org/search/?q=ambient+piano" target="_blank" class="btn btn-ghost btn-sm">🔍 去 Freesound 搜索下载</a>
+          </div>
+          <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px;">
+            下载音乐后放入 <code>D:\Claude-task\mood-lab\music\</code> 目录，系统自动识别。支持格式：MP3 / WAV / OGG / M4A / FLAC
+          </p>
+          <div id="music-tracks-list"></div>
+        </div>
+        <div class="card" style="margin-top:16px;">
+          <h3>音乐设置</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
+            <div>
+              <label>启用背景音乐</label>
+              <select id="music-enabled" onchange="saveMusicSetting('music_enabled', this.value)">
+                <option value="1">启用</option>
+                <option value="0">关闭</option>
+              </select>
+            </div>
+            <div>
+              <label>默认音量 (0-100)</label>
+              <input type="number" id="music-volume" min="0" max="100" value="30" onchange="saveMusicSetting('music_volume', this.value)">
+            </div>
+            <div>
+              <label>自动播放</label>
+              <select id="music-auto-play" onchange="saveMusicSetting('music_auto_play', this.value)">
+                <option value="1">是</option>
+                <option value="0">否</option>
+              </select>
+            </div>
+            <div>
+              <label>淡入淡出 (毫秒)</label>
+              <input type="number" id="music-fade" min="0" max="10000" value="2000" onchange="saveMusicSetting('music_fade_duration', this.value)">
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px;">
+          <h3>Freesound API (可选)</h3>
+          <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px;">配置后可在线搜索和预览 Freesound 音乐</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label>Client ID</label>
+              <input type="text" id="music-fs-client-id" placeholder="Freesound Client ID" onchange="saveMusicSetting('freesound_client_id', this.value)">
+            </div>
+            <div>
+              <label>Client Secret</label>
+              <input type="text" id="music-fs-client-secret" placeholder="Freesound Client Secret" onchange="saveMusicSetting('freesound_client_secret', this.value)">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Sales Device Modal -->
+<div id="sales-device-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="sales-modal-title">添加产品</h3>
+      <button class="modal-close" onclick="closeSalesDeviceModal()">&times;</button>
+    </div>
+    <div class="form-row">
+      <label>产品ID</label>
+      <input type="text" id="sales-device-id" placeholder="如：iphone-16-pro-max">
+    </div>
+    <div class="form-row">
+      <label>产品名称</label>
+      <input type="text" id="sales-device-name" placeholder="如：iPhone 16 Pro Max">
+    </div>
+    <div class="form-row">
+      <label>系列</label>
+      <select id="sales-device-series">
+        <option>iPhone</option>
+        <option>iPad</option>
+        <option>MacBook</option>
+        <option>Mac</option>
+        <option>AirPods</option>
+        <option>Apple Watch</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>颜色</label>
+      <input type="text" id="sales-device-color" placeholder="如：深空黑、白色、蓝色">
+    </div>
+    <div class="form-row">
+      <label>原价</label>
+      <input type="number" id="sales-original-price" placeholder="如：9999">
+    </div>
+    <div class="form-row">
+      <label>库存</label>
+      <select id="sales-in-stock">
+        <option value="1">有货</option>
+        <option value="0">缺货</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>排序</label>
+      <input type="number" id="sales-sort" placeholder="数字越小越靠前" value="0">
+    </div>
+    <div class="form-row">
+      <label>特点</label>
+      <input type="text" id="sales-features" placeholder="如：A18芯片, 钛金属边框（用逗号分隔）">
+    </div>
+    <div class="form-row">
+      <label>描述</label>
+      <textarea id="sales-desc" placeholder="产品描述..."></textarea>
+    </div>
+    <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeSalesDeviceModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveSalesDevice()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Image Upload Modal -->
+<div id="image-upload-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>上传产品图片</h3>
+      <button class="modal-close" onclick="closeImageModal()">&times;</button>
+    </div>
+    <div id="current-image-container" class="current-image" style="display:none">
+      <p style="margin-bottom:8px;color:var(--text2);font-size:.85rem">当前主图</p>
+      <img id="current-image-preview" src="" alt="当前图片">
+      <button class="btn btn-danger btn-sm" style="margin-top:8px" onclick="deleteCurrentImage()">删除主图</button>
+    </div>
+    <!-- 多图列表 -->
+    <div id="multi-images-container" style="margin-bottom:16px;">
+      <p style="margin-bottom:8px;color:var(--text2);font-size:.85rem">所有图片</p>
+      <div id="multi-images-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;"></div>
+    </div>
+    <div class="image-upload-area" id="image-upload-area" onclick="document.getElementById('image-file-input').click()">
+      <div class="icon">📷</div>
+      <p>点击或拖拽上传产品图片（支持多选，最多10张）</p>
+      <p style="font-size:.8rem;margin-top:4px">支持 JPG、PNG、WebP，最大 10MB</p>
+      <input type="file" id="image-file-input" accept="image/*" multiple>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:10px;">
+      <button class="btn btn-ghost btn-sm" onclick="resetIcon()">🔄 恢复默认图标</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pricing Modal -->
+<div id="pricing-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="pricing-modal-title">定价管理</h3>
+      <button class="modal-close" onclick="closePricingModal()">&times;</button>
+    </div>
+    <div class="form-row" style="margin-bottom:16px">
+      <label>容量</label>
+      <input type="text" id="pricing-storage" placeholder="如：256GB">
+    </div>
+    <div class="form-row" style="margin-bottom:16px">
+      <label>成色</label>
+      <select id="pricing-grade">
+        <option value="S">S级（99新）</option>
+        <option value="A">A级（95新）</option>
+        <option value="B">B级（9新）</option>
+        <option value="C">C级（85新）</option>
+        <option value="D">D级（8新）</option>
+      </select>
+    </div>
+    <div class="form-row" style="margin-bottom:16px">
+      <label>回收价</label>
+      <input type="number" id="pricing-recycle" placeholder="如：6000">
+    </div>
+    <div class="form-row" style="margin-bottom:16px">
+      <label>销售价</label>
+      <input type="number" id="pricing-sell" placeholder="如：7500">
+    </div>
+    <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closePricingModal()">取消</button>
+      <button class="btn btn-primary" onclick="savePricing()">保存</button>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
+    <h4 style="margin-bottom:12px">现有定价</h4>
+    <div class="table-wrap">
+      <table class="pricing-table">
+        <thead><tr><th>容量</th><th>成色</th><th>回收价</th><th>销售价</th><th>操作</th></tr></thead>
+        <tbody id="pricing-list"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Device Modal (Recycle) -->
+<div id="device-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modal-title">编辑设备</h3>
+      <button class="modal-close" onclick="closeDeviceModal()">&times;</button>
+    </div>
+    <div class="form-row">
+      <label>设备ID</label>
+      <input type="text" id="edit-device-id" placeholder="如：iphone-17-pro-max">
+    </div>
+    <div class="form-row">
+      <label>设备名称</label>
+      <input type="text" id="edit-device-name" placeholder="如：iPhone 17 Pro Max">
+    </div>
+    <div class="form-row">
+      <label>型号代码</label>
+      <input type="text" id="edit-device-code" placeholder="如：A3527">
+    </div>
+    <div class="form-row">
+      <label>类别</label>
+      <select id="edit-device-category">
+        <option>iPhone</option>
+        <option>iPad</option>
+        <option>AirPods</option>
+        <option>Apple Watch</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>排序</label>
+      <input type="number" id="edit-device-sort" placeholder="数字越小越靠前" value="0">
+    </div>
+    <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeDeviceModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveDevice()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+let token = '';
+let currentEditDeviceId = null;
+let currentEditSalesDeviceId = null;
+let currentImageDeviceId = null;
+let currentPricingDeviceId = null;
+
+// Auth
+function getToken() { return token || localStorage.getItem('admin_token') || ''; }
+
+async function doLogin() {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value.trim();
+  if (!user || !pass) { showError('请输入用户名和密码'); return; }
+  try {
+    const res = await fetch(`${API}/api/auth/login`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: user, password: pass })
+    });
+    const result = await res.json();
+    if (res.ok && result.success) {
+      token = result.data.token;
+      localStorage.setItem('admin_token', token);
+      localStorage.setItem('admin_user', result.data.username);
+      showApp();
+    } else {
+      showError(result.error || '登录失败');
+    }
+  } catch (e) { showError('网络错误'); }
+}
+
+function showError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg; el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3000);
+}
+
+function doLogout() {
+  token = '';
+  localStorage.removeItem('admin_token');
+  localStorage.removeItem('admin_user');
+  document.getElementById('app-view').style.display = 'none';
+  document.getElementById('login-view').style.display = 'block';
+}
+
+function showApp() {
+  document.getElementById('login-view').style.display = 'none';
+  document.getElementById('app-view').style.display = 'block';
+  const username = localStorage.getItem('admin_user') || '管理员';
+  document.getElementById('header-username').textContent = username;
+  document.getElementById('upload-date').value = new Date().toISOString().split('T')[0];
+  loadSalesDevices();
+  loadUploadHistory();
+  loadPrices();
+  loadDeductions();
+  loadDevices();
+  loadSettings();
+  loadUploadSettings();
+  loadUploadRecords();
+  loadMixerConfig();
+  loadMusicSettings();
+  loadMusicTracks();
+}
+
+// Section switch
+function switchSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(`sec-${name}`).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.section === name));
+}
+
+// ==================== 销售系统功能 ====================
+
+// 销售设备列表
+async function loadSalesDevices() {
+  try {
+    const res = await fetch(`${API}/api/phones/list/with-pricing`);
+    const result = await res.json();
+    if (result.success) {
+      const icons = { 
+        iPhone: '📱', 
+        iPad: '📟', 
+        MacBook: '💻', 
+        Mac: '🖥️',
+        AirPods: '🎧', 
+        'Apple Watch': '⌚' 
+      };
+      let html = '';
+      
+      // 先显示 iPhone（突出）
+      if (result.data['iPhone']) {
+        html += `<h3 style="margin:16px 0 12px;color:var(--accent)">${icons['iPhone']} iPhone（主要）(${result.data['iPhone'].length})</h3>`;
+        html += result.data['iPhone'].map(d => renderSalesDeviceCard(d, icons['iPhone'])).join('');
+      }
+      
+      // 再显示其他设备
+      for (const [series, devices] of Object.entries(result.data)) {
+        if (series === 'iPhone') continue;
+        html += `<h3 style="margin:24px 0 12px;color:var(--text2)">${icons[series] || ''} ${series} (${devices.length})</h3>`;
+        html += devices.map(d => renderSalesDeviceCard(d, icons[series] || '📱')).join('');
+      }
+      
+      document.getElementById('sales-devices-list').innerHTML = html || '<p style="color:var(--text2)">暂无产品</p>';
+    }
+  } catch (e) { console.error(e); }
+}
+
+function renderSalesDeviceCard(d, icon) {
+  const featured = d.series === 'iPhone' ? '<span class="featured-badge">主推</span>' : '';
+  const priceRange = d.min_price && d.max_price ? 
+    (d.min_price === d.max_price ? `¥${d.min_price}` : `¥${d.min_price} - ¥${d.max_price}`) : 
+    '暂无定价';
+  
+  return `
+    <div class="sales-device-card">
+      <div class="device-image">
+        ${d.image_path ? `<img src="${d.image_path}" alt="${d.name}">` : icon}
+      </div>
+      <div class="info">
+        <div class="name">${d.name} ${featured}</div>
+        <div class="price">${priceRange}</div>
+        <div class="meta">
+          ${d.original_price ? `<span style="text-decoration:line-through;color:var(--text3)">原价 ¥${d.original_price}</span>` : ''}
+          <span class="badge ${d.in_stock ? 'badge-stock' : 'badge-expired'}" style="margin-left:8px">${d.in_stock ? '有货' : '缺货'}</span>
+        </div>
+        <div class="meta">ID: ${d.id} | 排序: ${d.sort_order}</div>
+      </div>
+      <div class="actions">
+        <button class="btn-stock" onclick="toggleStock('${d.id}')" style="background:${d.in_stock ? 'var(--green)' : 'var(--text3)'};color:#fff;padding:6px 12px;border-radius:6px;border:none;font-size:.8rem;cursor:pointer">${d.in_stock ? '下架' : '上架'}</button>
+        <button class="btn-image" onclick="openImageModal('${d.id}')">上传图片</button>
+        <button class="btn-pricing" onclick="openPricingModal('${d.id}', '${d.name}')">定价</button>
+        <button class="btn-edit" onclick="editSalesDevice('${d.id}')">编辑</button>
+        <button class="btn-delete" onclick="deleteSalesDevice('${d.id}')">删除</button>
+      </div>
+    </div>
+  `;
+}
+
+// 添加/编辑销售设备
+function openAddSalesDeviceModal() {
+  currentEditSalesDeviceId = null;
+  document.getElementById('sales-modal-title').textContent = '添加产品';
+  document.getElementById('sales-device-id').value = '';
+  document.getElementById('sales-device-name').value = '';
+  document.getElementById('sales-device-series').value = 'iPhone';
+  document.getElementById('sales-device-color').value = '';
+  document.getElementById('sales-original-price').value = '';
+  document.getElementById('sales-in-stock').value = '1';
+  document.getElementById('sales-sort').value = '0';
+  document.getElementById('sales-features').value = '';
+  document.getElementById('sales-desc').value = '';
+  document.getElementById('sales-device-modal').classList.add('active');
+}
+
+async function editSalesDevice(deviceId) {
+  try {
+    const res = await fetch(`${API}/api/phones/list/with-pricing`);
+    const result = await res.json();
+    if (!result.success) return;
+    
+    let foundDevice = null;
+    for (const [series, devices] of Object.entries(result.data)) {
+      const found = devices.find(d => d.id === deviceId);
+      if (found) {
+        foundDevice = { ...found, series: series };
+        break;
+      }
+    }
+    
+    if (!foundDevice) {
+      toast('产品不存在', 'error');
+      return;
+    }
+    
+    currentEditSalesDeviceId = deviceId;
+    document.getElementById('sales-modal-title').textContent = '编辑产品';
+    document.getElementById('sales-device-id').value = foundDevice.id;
+    document.getElementById('sales-device-name').value = foundDevice.name;
+    document.getElementById('sales-device-series').value = foundDevice.series || 'iPhone';
+    document.getElementById('sales-device-color').value = foundDevice.color || '';
+    document.getElementById('sales-original-price').value = foundDevice.original_price || '';
+    document.getElementById('sales-in-stock').value = foundDevice.in_stock ? '1' : '0';
+    document.getElementById('sales-sort').value = foundDevice.sort_order || '0';
+    document.getElementById('sales-features').value = '';
+    document.getElementById('sales-desc').value = '';
+    document.getElementById('sales-device-modal').classList.add('active');
+  } catch (e) {
+    toast('加载产品信息失败', 'error');
+  }
+}
+
+function closeSalesDeviceModal() {
+  document.getElementById('sales-device-modal').classList.remove('active');
+}
+
+async function saveSalesDevice() {
+  const deviceId = document.getElementById('sales-device-id').value.trim();
+  const name = document.getElementById('sales-device-name').value.trim();
+  const series = document.getElementById('sales-device-series').value;
+  const color = document.getElementById('sales-device-color').value.trim();
+  const originalPrice = parseInt(document.getElementById('sales-original-price').value) || 0;
+  const inStock = document.getElementById('sales-in-stock').value === '1';
+  const sortOrder = parseInt(document.getElementById('sales-sort').value) || 0;
+  const features = document.getElementById('sales-features').value.trim();
+  const desc = document.getElementById('sales-desc').value.trim();
+
+  if (!deviceId || !name) {
+    toast('产品ID和名称不能为空', 'error');
+    return;
+  }
+
+  try {
+    const data = {
+      phone_id: deviceId,
+      name: name,
+      series: series,
+      color: color,
+      original_price: originalPrice,
+      in_stock: inStock ? 1 : 0,
+      sort_order: sortOrder
+    };
+
+    let res;
+    if (currentEditSalesDeviceId) {
+      // 更新
+      res = await fetch(`${API}/api/phones/${currentEditSalesDeviceId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+        body: JSON.stringify(data)
+      });
+    } else {
+      // 添加
+      res = await fetch(`${API}/api/phones`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+        body: JSON.stringify(data)
+      });
+    }
+
+    const result = await res.json();
+    if (result.success) {
+      toast(currentEditSalesDeviceId ? '更新成功' : '添加成功', 'success');
+      closeSalesDeviceModal();
+      loadSalesDevices();
+    } else {
+      toast(result.error || '保存失败', 'error');
+    }
+  } catch (e) {
+    toast('保存失败', 'error');
+  }
+}
+
+async function deleteSalesDevice(deviceId) {
+  if (!confirm('确定要删除这个产品吗？相关的定价数据也会被删除。')) return;
+  
+  try {
+    const res = await fetch(`${API}/api/phones/${deviceId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${getToken()}` }
+    });
+    
+    const result = await res.json();
+    if (result.success) {
+      toast('删除成功', 'success');
+      loadSalesDevices();
+    } else {
+      toast(result.error || '删除失败', 'error');
+    }
+  } catch (e) {
+    toast('删除失败', 'error');
+  }
+}
+
+// 上下架切换
+async function toggleStock(deviceId) {
+  try {
+    const res = await fetch(`${API}/api/phones/${deviceId}/stock`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${getToken()}` }
+    });
+    const result = await res.json();
+    if (result.success) {
+      toast(result.data.in_stock ? '已上架' : '已下架', 'success');
+      loadSalesDevices();
+    }
+  } catch (e) { toast('操作失败', 'error'); }
+}
+
+// 图片上传
+async function openImageModal(deviceId) {
+  currentImageDeviceId = deviceId;
+  
+  // 加载当前图片和多图列表
+  try {
+    const res = await fetch(`${API}/api/phones/list/with-pricing`);
+    const result = await res.json();
+    if (result.success) {
+      let imagePath = null;
+      let deviceIcon = '📱';
+      for (const [series, devices] of Object.entries(result.data)) {
+        const found = devices.find(d => d.id === deviceId);
+        if (found) {
+          imagePath = found.image_path;
+          deviceIcon = found.icon || '📱';
+          break;
+        }
+      }
+      
+      const container = document.getElementById('current-image-container');
+      const preview = document.getElementById('current-image-preview');
+      
+      if (imagePath) {
+        preview.src = imagePath;
+        container.style.display = 'block';
+      } else {
+        // 显示默认图标
+        preview.src = '';
+        container.style.display = 'block';
+        container.innerHTML = `
+          <p style="margin-bottom:8px;color:var(--text2);font-size:.85rem">当前默认图标</p>
+          <div style="width:120px;height:120px;background:var(--card2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;margin:0 auto;">${deviceIcon}</div>
+          <p style="margin-top:8px;color:var(--text3);font-size:.8rem">未上传自定义图片，使用默认图标</p>
+        `;
+      }
+    }
+  } catch (e) {}
+  
+  // 加载多图列表
+  loadMultiImages(deviceId);
+  
+  document.getElementById('image-upload-modal').classList.add('active');
+}
+
+// 加载多图列表
+async function loadMultiImages(deviceId) {
+  try {
+    const res = await fetch(`${API}/api/phones/${deviceId}/images`);
+    const result = await res.json();
+    const grid = document.getElementById('multi-images-grid');
+    if (result.success && result.data.length > 0) {
+      grid.innerHTML = result.data.map(img => `
+        <div style="position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--border);aspect-ratio:1;">
+          <img src="${img.image_path}" style="width:100%;height:100%;object-fit:cover;" alt="">
+          <button onclick="deleteMultiImage(${img.id})" style="position:absolute;top:4px;right:4px;background:var(--red);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button>
+        </div>
+      `).join('');
+    } else {
+      grid.innerHTML = '<p style="color:var(--text3);font-size:.8rem;grid-column:1/-1;">暂无多图</p>';
+    }
+  } catch (e) {
+    document.getElementById('multi-images-grid').innerHTML = '<p style="color:var(--text3);font-size:.8rem;">加载失败</p>';
+  }
+}
+
+// 删除多图中的单张
+async function deleteMultiImage(imageId) {
+  if (!currentImageDeviceId || !confirm('确定要删除这张图片吗？')) return;
+  try {
+    const res = await fetch(`${API}/api/phones/${currentImageDeviceId}/images/${imageId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${getToken()}` }
+    });
+    const result = await res.json();
+    if (result.success) {
+      toast('图片已删除', 'success');
+      loadMultiImages(currentImageDeviceId);
+      loadSalesDevices();
+    } else {
+      toast(result.error || '删除失败', 'error');
+    }
+  } catch (e) { toast('删除失败', 'error'); }
+}
+
+// 恢复默认图标
+async function resetIcon() {
+  if (!currentImageDeviceId) return;
+  if (!confirm('确定要恢复默认图标吗？')) return;
+  try {
+    const res = await fetch(`${API}/api/phones/${currentImageDeviceId}/icon/reset`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${getToken()}` }
+    });
+    const result = await res.json();
+    if (result.success) {
+      toast('已恢复默认图标', 'success');
+      closeImageModal();
+      loadSalesDevices();
+    } else {
+      toast(result.error || '操作失败', 'error');
+    }
+  } catch (e) { toast('操作失败', 'error'); }
+}
+
+function closeImageModal() {
+  document.getElementById('image-upload-modal').classList.remove('active');
+  currentImageDeviceId = null;
+}
+
+// 图片上传处理（支持多文件）
+document.getElementById('image-file-input').addEventListener('change', async function(e) {
+  const files = Array.from(e.target.files);
+  if (files.length === 0 || !currentImageDeviceId) return;
+  
+  const formData = new FormData();
+  files.forEach(file => formData.append('images', file));
+  
+  try {
+    const res = await fetch(`${API}/api/phones/${currentImageDeviceId}/images`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${getToken()}` },
+      body: formData
+    });
+    
+    const result = await res.json();
+    if (result.success) {
+      toast(`成功上传 ${files.length} 张图片`, 'success');
+      loadMultiImages(currentImageDeviceId);
+      loadSalesDevices();
+      // 更新当前主图显示
+      const container = document.getElementById('current-image-container');
+      const preview = document.getElementById('current-image-preview');
+      if (result.data.images && result.data.images.length > 0) {
+        preview.src = result.data.images[0];
+        container.style.display = 'block';
+      }
+    } else {
+      toast(result.error || '上传失败', 'error');
+    }
+  } catch (e) {
+    toast('上传失败', 'error');
+  }
+  
+  this.value = '';
+});
+
+// 拖拽上传
+document.getElementById('image-upload-area').addEventListener('dragover', function(e) { e.preventDefault(); this.style.borderColor = 'var(--accent)'; });
+document.getElementById('image-upload-area').addEventListener('dragleave', function() { this.style.borderColor = 'var(--border)'; });
+document.getElementById('image-upload-area').addEventListener('drop', function(e) {
+  e.preventDefault(); this.style.borderColor = 'var(--border)';
+  const files = Array.from(e.dataTransfer.files);
+  if (files.length > 0 && currentImageDeviceId) {
+    const input = document.getElementById('image-file-input');
+    const dt = new DataTransfer();
+    files.forEach(file => dt.items.add(file));
+    input.files = dt.files;
+    input.dispatchEvent(new Event('change'));
+  }
+});
+
+async function deleteCurrentImage() {
+  if (!currentImageDeviceId) return;
+  if (!confirm('确定要删除这张图片吗？')) return;
+  
+  try {
+    const res = await fetch(`${API}/api/phones/${currentImageDeviceId}/image`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${getToken()}` }
+    });
+    
+    const result = await res.json();
+    if (result.success) {
+      toast('删除成功', 'success');
+      closeImageModal();
+      loadSalesDevices();
+    } else {
+      toast(result.error || '删除失败', 'error');
+    }
+  } catch (e) {
+    toast('删除失败', 'error');
+  }
+}
+
+// 定价管理
+async function openPricingModal(deviceId, deviceName) {
+  currentPricingDeviceId = deviceId;
+  document.getElementById('pricing-modal-title').textContent = `定价管理 - ${deviceName}`;
+  document.getElementById('pricing-storage').value = '';
+  document.getElementById('pricing-grade').value = 'S';
+  document.getElementById('pricing-recycle').value = '';
+  document.getElementById('pricing-sell').value = '';
+  
+  // 加载现有定价
+  try {
+    const res = await fetch(`${API}/api/phones/${deviceId}/pricing`);
+    const result = await res.json();
+    if (result.success) {
+      document.getElementById('pricing-list').innerHTML = result.data.map(p => `
+        <tr>
+          <td>${p.storage}</td>
+          <td>${p.condition_grade}</td>
+          <td>¥${p.recycle_price}</td>
+          <td>¥${p.sell_price}</td>
+          <td><button class="btn btn-danger btn-sm" onclick="deletePricing('${p.storage}', '${p.condition_grade}')">删除</button></td>
+        </tr>
+      `).join('');
+    }
+  } catch (e) {
+    document.getElementById('pricing-list').innerHTML = '';
+  }
+  
+  document.getElementById('pricing-modal').classList.add('active');
+}
+
+function closePricingModal() {
+  document.getElementById('pricing-modal').classList.remove('active');
+  currentPricingDeviceId = null;
+}
+
+async function savePricing() {
+  if (!currentPricingDeviceId) return;
+  
+  const storage = document.getElementById('pricing-storage').value.trim();
+  const grade = document.getElementById('pricing-grade').value;
+  const recycle = parseInt(document.getElementById('pricing-recycle').value) || 0;
+  const sell = parseInt(document.getElementById('pricing-sell').value) || 0;
+  
+  if (!storage) {
+    toast('请输入容量', 'error');
+    return;
+  }
+  
+  try {
+    const res = await fetch(`${API}/api/phones/${currentPricingDeviceId}/pricing`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+      body: JSON.stringify({
+        storage: storage,
+        condition_grade: grade,
+        recycle_price: recycle,
+        sell_price: sell
+      })
+    });
+    
+    const result = await res.json();
+    if (result.success) {
+      toast('保存成功', 'success');
+      openPricingModal(currentPricingDeviceId, document.getElementById('pricing-modal-title').textContent.replace('定价管理 - ', ''));
+      loadSalesDevices();
+    } else {
+      toast(result.error || '保存失败', 'error');
+    }
+  } catch (e) {
+    toast('保存失败', 'error');
+  }
+}
+
+async function deletePricing(storage, grade) {
+  if (!currentPricingDeviceId) return;
+  if (!confirm(`确定要删除 ${storage} / ${grade} 级的定价吗？`)) return;
+  
+  try {
+    const res = await fetch(`${API}/api/phones/${currentPricingDeviceId}/pricing`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+      body: JSON.stringify({ storage, condition_grade: grade })
+    });
+    const result = await res.json();
+    if (result.success) {
+      toast('定价已删除', 'success');
+      // 重新加载定价列表
+      openPricingModal(currentPricingDeviceId, document.getElementById('pricing-modal-title').textContent.replace('定价管理 - ', ''));
+      loadSalesDevices();
+    } else {
+      toast(result.error || '删除失败', 'error');
+    }
+  } catch (e) { toast('删除失败', 'error'); }
+}
+
+// ==================== 回收系统功能 ====================
+
+// Upload
+let pendingFiles = [];
+
+document.getElementById('file-input').addEventListener('change', function(e) {
+  pendingFiles = Array.from(e.target.files);
+  const preview = document.getElementById('upload-preview');
+  preview.innerHTML = pendingFiles.map(f => {
+    const url = URL.createObjectURL(f);
+    return `<img src="${url}" alt="${f.name}">`;
+  }).join('');
+});
+
+document.getElementById('upload-area').addEventListener('dragover', function(e) { e.preventDefault(); this.style.borderColor = 'var(--accent)'; });
+document.getElementById('upload-area').addEventListener('dragleave', function() { this.style.borderColor = 'var(--border)'; });
+document.getElementById('upload-area').addEventListener('drop', function(e) {
+  e.preventDefault(); this.style.borderColor = 'var(--border)';
+  pendingFiles = Array.from(e.dataTransfer.files);
+  const preview = document.getElementById('upload-preview');
+  preview.innerHTML = pendingFiles.map(f => {
+    const url = URL.createObjectURL(f);
+    return `<img src="${url}" alt="${f.name}">`;
+  }).join('');
+});
+
+async function doUpload() {
+  if (pendingFiles.length === 0) { toast('请选择文件', 'error'); return; }
+  const warrantyType = document.getElementById('upload-warranty').value;
+  const priceDate = document.getElementById('upload-date').value;
+
+  for (const file of pendingFiles) {
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('warranty_type', warrantyType);
+    formData.append('price_date', priceDate);
+
+    try {
+      const res = await fetch(`${API}/api/ocr/upload`, {
+        method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` },
+        body: formData
+      });
+      const result = await res.json();
+      if (result.success) toast(`上传成功: ${file.name}`, 'success');
+      else toast(result.error || '上传失败', 'error');
+    } catch (e) { toast('上传失败', 'error'); }
+  }
+  pendingFiles = [];
+  document.getElementById('upload-preview').innerHTML = '';
+  loadUploadHistory();
+}
+
+async function loadUploadHistory() {
+  try {
+    const res = await fetch(`${API}/api/ocr/history`, { headers: { 'Authorization': `Bearer ${getToken()}` } });
+    const result = await res.json();
+    if (result.success) {
+      document.getElementById('upload-history').innerHTML = result.data.map(r =>
+        `<tr>
+          <td>${r.file_name}</td>
+          <td>${r.warranty_type || '-'}</td>
+          <td>${r.price_date || '-'}</td>
+          <td><span class="badge ${r.status === 'uploaded' ? 'badge-warranty' : 'badge-expired'}">${r.status}</span></td>
+          <td>${r.uploaded_by || '-'}</td>
+          <td>${r.created_at}</td>
+          <td><button class="btn btn-danger btn-sm" onclick="deleteUpload(${r.id})">删除</button></td>
+        </tr>`
+      ).join('');
+    }
+  } catch (e) {}
+}
+
+async function deleteUpload(id) {
+  if (!confirm('确定要删除这条上传记录吗？')) return;
+  try {
+    const res = await fetch(`${API}/api/ocr/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${getToken()}` }
+    });
+    const result = await res.json();
+    if (result.success) {
+      toast('删除成功', 'success');
+      loadUploadHistory();
+    } else {
+      toast(result.error || '删除失败', 'error');
+    }
+  } catch (e) {
+    toast('删除失败', 'error');
+  }
+}
+
+// Prices
+async function loadPrices() {
+  try {
+    const res = await fetch(`${API}/api/prices/overview`, { headers: { 'Authorization': `Bearer ${getToken()}` } });
+    const result = await res.json();
+    if (!result.success) return;
+
+    const { dates, prices } = result.data;
+
+    // Tabs
+    document.getElementById('price-tabs').innerHTML = dates.map((d, i) =>
+      `<div class="tab ${i === 0 ? 'active' : ''}" onclick="filterByDate('${d}', this)">${d}</div>`
+    ).join('');
+
+    // Filter dropdown
+    const deviceSet = new Set();
+    prices.forEach(p => deviceSet.add(`${p.device_id}|${p.device_name}`));
+    const sel = document.getElementById('price-filter-device');
+    sel.innerHTML = '<option value="">全部设备</option>' +
+      Array.from(deviceSet).map(d => { const [id, name] = d.split('|'); return `<option value="${id}">${name}</option>`; }).join('');
+
+    renderPricesTable(prices);
+    window._allPrices = prices;
+  } catch (e) { console.error(e); }
+}
+
+function filterByDate(date, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+document.getElementById('price-filter-device').addEventListener('change', applyPriceFilter);
+document.getElementById('price-filter-warranty').addEventListener('change', applyPriceFilter);
+
+function applyPriceFilter() {
+  const device = document.getElementById('price-filter-device').value;
+  const warranty = document.getElementById('price-filter-warranty').value;
+  let filtered = window._allPrices || [];
+  if (device) filtered = filtered.filter(p => p.device_id === device);
+  if (warranty) filtered = filtered.filter(p => p.warranty_type === warranty);
+  renderPricesTable(filtered);
+}
+
+function renderPricesTable(prices) {
+  const grades = ['S', 'A', 'B', 'C', 'D', 'E'];
+  // Group by device + warranty + storage
+  const grouped = {};
+  for (const p of prices) {
+    const key = `${p.device_id}|${p.warranty_type}|${p.storage}`;
+    if (!grouped[key]) grouped[key] = { device_name: p.device_name, category: p.category, device_id: p.device_id, warranty_type: p.warranty_type, storage: p.storage, grades: {} };
+    grouped[key].grades[p.condition_grade] = p.price;
+  }
+
+  const rows = Object.values(grouped);
+  document.getElementById('prices-table-wrap').innerHTML = `
+    <table>
+      <thead><tr><th>设备</th><th>类型</th><th>容量</th>${grades.map(g => `<th>${g}</th>`).join('')}</tr></thead>
+      <tbody>${rows.map(r => `
+        <tr>
+          <td>${r.device_name}</td>
+          <td><span class="badge ${r.warranty_type === 'warranty' ? 'badge-warranty' : 'badge-expired'}">${r.warranty_type === 'warranty' ? '在保' : '过保'}</span></td>
+          <td>${r.storage}</td>
+          ${grades.map(g => `<td><input type="number" value="${r.grades[g] || ''}" data-device="${r.device_id}" data-warranty="${r.warranty_type}" data-storage="${r.storage}" data-grade="${g}"></td>`).join('')}
+        </tr>
+      `).join('')}</tbody>
+    </table>`;
+}
+
+async function saveAllPrices() {
+  const inputs = document.querySelectorAll('#prices-table-wrap input[type="number"]');
+  const prices = [];
+  inputs.forEach(inp => {
+    const val = parseInt(inp.value);
+    if (!isNaN(val) && val > 0) {
+      prices.push({
+        device_id: inp.dataset.device,
+        warranty_type: inp.dataset.warranty,
+        storage: inp.dataset.storage,
+        condition_grade: inp.dataset.grade,
+        price: val,
+        price_date: document.querySelector('.tab.active')?.textContent || new Date().toISOString().split('T')[0]
+      });
+    }
+  });
+  if (prices.length === 0) { toast('无修改', 'error'); return; }
+  try {
+    const res = await fetch(`${API}/api/prices/batch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+      body: JSON.stringify({ prices })
+    });
+    const result = await res.json();
+    if (result.success) toast(`已保存 ${result.data.updated} 条报价`, 'success');
+    else toast(result.error, 'error');
+  } catch (e) { toast('保存失败', 'error'); }
+}
+
+// Deductions
+async function loadDeductions() {
+  try {
+    const res = await fetch(`${API}/api/deductions`, { headers: { 'Authorization': `Bearer ${getToken()}` } });
+    const result = await res.json();
+    if (result.success) {
+      document.getElementById('deduct-table').innerHTML = result.data.map(d =>
+        `<tr>
+          <td>${d.category}</td><td>${d.rule_name}</td><td>${d.description || '-'}</td>
+          <td style="color:var(--red);font-weight:600">-${d.deduction_amount}</td><td>${d.sort_order}</td>
+          <td><button class="btn btn-danger btn-sm" onclick="deleteDeduction(${d.id})">删除</button></td>
+        </tr>`
+      ).join('');
+    }
+  } catch (e) {}
+}
+
+async function addDeduction() {
+  const data = {
+    category: document.getElementById('ded-cat').value,
+    rule_name: document.getElementById('ded-name').value.trim(),
+    description: document.getElementById('ded-desc').value.trim(),
+    deduction_amount: parseInt(document.getElementById('ded-amount').value) || 0,
+    sort_order: parseInt(document.getElementById('ded-sort').value) || 0
+  };
+  if (!data.rule_name) { toast('请输入规则名称', 'error'); return; }
+  try {
+    const res = await fetch(`${API}/api/deductions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (result.success) { toast('添加成功', 'success'); loadDeductions(); document.getElementById('ded-name').value = ''; document.getElementById('ded-desc').value = ''; document.getElementById('ded-amount').value = ''; }
+    else toast(result.error, 'error');
+  } catch (e) { toast('添加失败', 'error'); }
+}
+
+async function deleteDeduction(id) {
+  if (!confirm('确定删除？')) return;
+  try {
+    const res = await fetch(`${API}/api/deductions/${id}`, {
+      method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` }
+    });
+    const result = await res.json();
+    if (result.success) { toast('已删除', 'success'); loadDeductions(); }
+  } catch (e) { toast('删除失败', 'error'); }
+}
+
+// Devices
+async function loadDevices() {
+  try {
+    const res = await fetch(`${API}/api/devices`);
+    const result = await res.json();
+    if (result.success) {
+      const icons = { iPhone: '📱', iPad: '📟', AirPods: '🎧', 'Apple Watch': '⌚' };
+      let html = '';
+      for (const [cat, devices] of Object.entries(result.data)) {
+        html += `<h3 style="margin:16px 0 12px">${icons[cat] || ''} ${cat} (${devices.length})</h3>`;
+        html += devices.map(d => `
+          <div class="device-card">
+            <div class="icon">${icons[cat] || '📱'}</div>
+            <div class="info">
+              <div class="name">${d.name}</div>
+              <div class="meta">ID: ${d.device_id}${d.code ? ' | 型号: ' + d.code : ''}</div>
+            </div>
+            <div class="actions">
+              <button class="btn-edit" onclick="editDevice('${d.device_id}')">编辑</button>
+              <button class="btn-delete" onclick="deleteDevice('${d.device_id}')">删除</button>
+            </div>
+          </div>
+        `).join('');
+      }
+      document.getElementById('devices-list').innerHTML = html || '<p style="color:var(--text2)">暂无设备</p>';
+    }
+  } catch (e) { console.error(e); }
+}
+
+// Device CRUD
+function openAddDeviceModal() {
+  currentEditDeviceId = null;
+  document.getElementById('modal-title').textContent = '添加设备';
+  document.getElementById('edit-device-id').value = '';
+  document.getElementById('edit-device-name').value = '';
+  document.getElementById('edit-device-code').value = '';
+  document.getElementById('edit-device-category').value = 'iPhone';
+  document.getElementById('edit-device-sort').value = '0';
+  document.getElementById('device-modal').classList.add('active');
+}
+
+async function editDevice(deviceId) {
+  try {
+    const res = await fetch(`${API}/api/devices`);
+    const result = await res.json();
+    if (!result.success) return;
+    
+    let foundDevice = null;
+    for (const [cat, devices] of Object.entries(result.data)) {
+      const found = devices.find(d => d.device_id === deviceId);
+      if (found) {
+        foundDevice = { ...found, category: cat };
+        break;
+      }
+    }
+    
+    if (!foundDevice) {
+      toast('设备不存在', 'error');
+      return;
+    }
+    
+    currentEditDeviceId = deviceId;
+    document.getElementById('modal-title').textContent = '编辑设备';
+    document.getElementById('edit-device-id').value = foundDevice.device_id;
+    document.getElementById('edit-device-name').value = foundDevice.name;
+    document.getElementById('edit-device-code').value = foundDevice.code || '';
+    document.getElementById('edit-device-category').value = foundDevice.category || 'iPhone';
+    document.getElementById('edit-device-sort').value = foundDevice.sort_order || '0';
+    document.getElementById('device-modal').classList.add('active');
+  } catch (e) {
+    toast('加载设备信息失败', 'error');
+  }
+}
+
+function closeDeviceModal() {
+  document.getElementById('device-modal').classList.remove('active');
+}
+
+async function saveDevice() {
+  const deviceId = document.getElementById('edit-device-id').value.trim();
+  const name = document.getElementById('edit-device-name').value.trim();
+  const code = document.getElementById('edit-device-code').value.trim();
+  const category = document.getElementById('edit-device-category').value;
+  const sortOrder = parseInt(document.getElementById('edit-device-sort').value) || 0;
+
+  if (!deviceId || !name) {
+    toast('设备ID和名称不能为空', 'error');
+    return;
+  }
+
+  try {
+    const data = {
+      device_id: deviceId,
+      name: name,
+      model_code: code,
+      category: category,
+      sort_order: sortOrder
+    };
+
+    let res;
+    if (currentEditDeviceId) {
+      // 更新
+      res = await fetch(`${API}/api/devices/${currentEditDeviceId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+        body: JSON.stringify(data)
+      });
+    } else {
+      // 添加
+      res = await fetch(`${API}/api/devices`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+        body: JSON.stringify(data)
+      });
+    }
+
+    const result = await res.json();
+    if (result.success) {
+      toast(currentEditDeviceId ? '更新成功' : '添加成功', 'success');
+      closeDeviceModal();
+      loadDevices();
+    } else {
+      toast(result.error || '保存失败', 'error');
+    }
+  } catch (e) {
+    toast('保存失败', 'error');
+  }
+}
+
+async function deleteDevice(deviceId) {
+  if (!confirm('确定要删除这个设备吗？相关的报价数据也会受到影响。')) return;
+  
+  try {
+    const res = await fetch(`${API}/api/devices/${deviceId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${getToken()}` }
+    });
+    
+    const result = await res.json();
+    if (result.success) {
+      toast('删除成功', 'success');
+      loadDevices();
+    } else {
+      toast(result.error || '删除失败', 'error');
+    }
+  } catch (e) {
+    toast('删除失败', 'error');
+  }
+}
+
+// 批量上下架
+async function batchToggleStock(inStock) {
+  if (!confirm(`确定要${inStock ? '上架' : '下架'}所有产品吗？`)) return;
+  try {
+    const res = await fetch(`${API}/api/phones/list/with-pricing`);
+    const result = await res.json();
+    if (!result.success) return;
+    const allIds = [];
+    for (const devices of Object.values(result.data)) {
+      devices.forEach(d => allIds.push(d.id));
+    }
+    if (allIds.length === 0) { toast('没有产品可操作', 'error'); return; }
+    const batchRes = await fetch(`${API}/api/phones/batch/stock`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+      body: JSON.stringify({ phone_ids: allIds, in_stock: inStock })
+    });
+    const batchResult = await batchRes.json();
+    if (batchResult.success) {
+      toast(`已${inStock ? '上架' : '下架'} ${batchResult.data.updated} 个产品`, 'success');
+      loadSalesDevices();
+    } else {
+      toast(batchResult.error || '操作失败', 'error');
+    }
+  } catch(e) { toast('操作失败', 'error'); }
+}
+
+// Toast
+function toast(msg, type = 'success') {
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+// Close modal on outside click
+document.getElementById('device-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeDeviceModal();
+});
+document.getElementById('sales-device-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeSalesDeviceModal();
+});
+document.getElementById('image-upload-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeImageModal();
+});
+document.getElementById('pricing-modal').addEventListener('click', function(e) {
+  if (e.target === this) closePricingModal();
+});
+
+// 联系我设置
+async function loadSettings() {
+  try {
+    const res = await fetch(`${API}/api/settings`, {
+      headers: { 'Authorization': `Bearer ${getToken()}` }
+    });
+    const result = await res.json();
+    
+    if (result.success && result.data) {
+      const data = result.data;
+      document.getElementById('setting-contact-name').value = data.contact_name || '';
+      document.getElementById('setting-contact-tagline').value = data.contact_tagline || '';
+      document.getElementById('setting-contact-phone').value = data.contact_phone || '';
+      document.getElementById('setting-contact-email').value = data.contact_email || '';
+      document.getElementById('setting-contact-wechat').value = data.contact_wechat || '';
+      document.getElementById('setting-contact-avatar').value = data.contact_avatar || '';
+      
+      const qrPreview = document.getElementById('qr-preview');
+      if (data.contact_wechat_qr) {
+        qrPreview.innerHTML = `<img src="${data.contact_wechat_qr}" style="width:100%;height:100%;object-fit:contain;border-radius:6px;">`;
+      } else {
+        qrPreview.innerHTML = '暂无二维码';
+      }
+    }
+  } catch (e) {
+    console.error('加载设置失败:', e);
+    toast('加载设置失败', 'error');
+  }
+}
+
+async function saveSettings() {
+  const data = {
+    contact_name: document.getElementById('setting-contact-name').value.trim(),
+    contact_tagline: document.getElementById('setting-contact-tagline').value.trim(),
+    contact_phone: document.getElementById('setting-contact-phone').value.trim(),
+    contact_email: document.getElementById('setting-contact-email').value.trim(),
+    contact_wechat: document.getElementById('setting-contact-wechat').value.trim(),
+    contact_avatar: document.getElementById('setting-contact-avatar').value.trim()
+  };
+
+  try {
+    const res = await fetch(`${API}/api/settings`, {
+      method: 'PUT',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}` 
+      },
+      body: JSON.stringify(data)
+    });
+    
+    const result = await res.json();
+    if (result.success) {
+      toast('保存成功', 'success');
+    } else {
+      toast(result.error || '保存失败', 'error');
+    }
+  } catch (e) {
+    console.error('保存设置失败:', e);
+    toast('保存失败', 'error');
+  }
+}
+
+// 微信二维码上传
+document.addEventListener('DOMContentLoaded', function() {
+  const qrInput = document.getElementById('qr-image-input');
+  if (qrInput) {
+    qrInput.addEventListener('change', async function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const formData = new FormData();
+      formData.append('qr-image', file);
+      
+      try {
+        const res = await fetch(`${API}/api/settings/upload-wechat-qr`, {
+          method: 'POST',
+          headers: { 
+            'Authorization': `Bearer ${getToken()}` 
+          },
+          body: formData
+        });
+        
+        const result = await res.json();
+        if (result.success) {
+          const qrPreview = document.getElementById('qr-preview');
+          qrPreview.innerHTML = `<img src="${result.data.path}" style="width:100%;height:100%;object-fit:contain;border-radius:6px;">`;
+          toast('微信二维码上传成功', 'success');
+        } else {
+          toast(result.error || '上传失败', 'error');
+        }
+      } catch (e) {
+        console.error('上传微信二维码失败:', e);
+        toast('上传失败', 'error');
+      }
+      
+      qrInput.value = '';
+    });
+  }
+});
+
+// ==================== 上传管理功能 ====================
+
+async function loadUploadSettings() {
+  try {
+    const res = await fetch(`${API}/api/settings`, { headers: { 'Authorization': `Bearer ${getToken()}` } });
+    const result = await res.json();
+    if (result.success) {
+      document.getElementById('upload-quota-setting').value = result.data.upload_daily_quota || '10';
+      document.getElementById('upload-enabled-setting').value = result.data.upload_enabled || '1';
+    }
+  } catch(e) {}
+}
+
+async function saveUploadSettings() {
+  const quota = document.getElementById('upload-quota-setting').value;
+  const enabled = document.getElementById('upload-enabled-setting').value;
+  try {
+    const res = await fetch(`${API}/api/settings`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+      body: JSON.stringify({ upload_daily_quota: quota, upload_enabled: enabled })
+    });
+    const result = await res.json();
+    if (result.success) toast('保存成功', 'success');
+  } catch(e) { toast('保存失败', 'error'); }
+}
+
+async function resetUploadQuota() {
+  if (!confirm('确定重置今日上传配额？')) return;
+  try {
+    const res = await fetch(`${API}/api/upload/admin/reset-quota`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${getToken()}` }
+    });
+    const result = await res.json();
+    if (result.success) toast(`已清除 ${result.data.cleared} 条记录`, 'success');
+  } catch(e) { toast('重置失败', 'error'); }
+}
+
+async function loadUploadRecords() {
+  const date = document.getElementById('upload-filter-date').value;
+  try {
+    const url = `${API}/api/upload/admin/list${date ? '?date=' + date : ''}`;
+    const res = await fetch(url, { headers: { 'Authorization': `Bearer ${getToken()}` } });
+    const result = await res.json();
+    if (result.success) {
+      document.getElementById('upload-records-table').innerHTML = result.data.map(r => {
+        const size = r.file_size ? (r.file_size / 1024).toFixed(1) + 'KB' : '-';
+        const time = r.created_at ? r.created_at.split(' ')[1] || r.created_at : '-';
+        return `<tr>
+          <td>${r.id}</td>
+          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${r.file_name}</td>
+          <td>${size}</td>
+          <td>${r.upload_date}</td>
+          <td>${time}</td>
+          <td><button class="btn btn-danger btn-sm" onclick="deleteUploadRecord(${r.id})">删除</button></td>
+        </tr>`;
+      }).join('') || '<tr><td colspan="6" style="color:var(--text2)">暂无记录</td></tr>';
+    }
+  } catch(e) {}
+}
+
+async function deleteUploadRecord(id) {
+  if (!confirm('确定删除？')) return;
+  try {
+    const res = await fetch(`${API}/api/upload/admin/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${getToken()}` }
+    });
+    const result = await res.json();
+    if (result.success) { toast('已删除', 'success'); loadUploadRecords(); }
+  } catch(e) { toast('删除失败', 'error'); }
+}
+
+// ==================== 感官调配器配置 ====================
+async function loadMixerConfig() {
+  try {
+    const res = await fetch(`${API}/api/mixer/admin/dimensions`, {
+      headers: { 'Authorization': `Bearer ${getToken()}` }
+    });
+    const result = await res.json();
+    if (result.success) {
+      renderMixerDimensions(result.data);
+    }
+  } catch (e) {
+    console.error('加载调配器配置失败:', e);
+  }
+}
+function renderMixerDimensions(dims) {
+  const container = document.getElementById('mixer-dimensions-list');
+  if (!container) return;
+
+  if (!dims || dims.length === 0) {
+    container.innerHTML = '<p style="color:var(--text2)">暂无维度数据</p>';
+    return;
+  }
+
+  container.innerHTML = dims.map(dim => {
+    const optionsHtml = dim.options && dim.options.length > 0
+      ? dim.options.map(opt => `
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;">
+          <span style="font-size:1.2rem;">${opt.icon || '🎵'}</span>
+          <span style="flex:1;font-size:.85rem;">${opt.option_label} <span style="color:var(--text3)">(${opt.option_value})</span></span>
+          <span style="font-size:.75rem;color:var(--text3)">排序:${opt.sort_order}</span>
+          <button class="btn btn-ghost btn-sm" onclick="toggleOptionActive(${opt.id}, ${opt.active ? 0 : 1})" style="font-size:.75rem;">${opt.active ? '禁用' : '启用'}</button>
+        </div>
+      `).join('')
+      : '<p style="color:var(--text3);font-size:.8rem;">暂无选项</p>';
+
+    return `
+      <div class="card" style="margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <h3 style="margin:0;">
+            <span style="font-size:1.3rem;">${dim.icon || '🎵'}</span>
+            ${dim.name} / ${dim.label || dim.name}
+            <span style="font-size:.75rem;color:var(--text3);margin-left:8px;">[${dim.dim_key}]</span>
+            <span class="badge ${dim.active ? 'badge-stock' : 'badge-expired'}" style="margin-left:8px;">${dim.active ? '启用' : '禁用'}</span>
+          </h3>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" onclick="toggleDimActive(${dim.id}, ${dim.active ? 0 : 1})">${dim.active ? '禁用维度' : '启用维度'}</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:16px;margin-bottom:12px;font-size:.8rem;color:var(--text2);">
+          <span>类型: <strong>${dim.type}</strong></span>
+          <span>权重: <strong>${dim.weight}</strong></span>
+          <span>排序: <strong>${dim.sort_order}</strong></span>
+          <span>范围: <strong>${dim.min_val} ~ ${dim.max_val}</strong></span>
+        </div>
+        <div style="margin-top:8px;">
+          <div style="font-size:.85rem;color:var(--text2);margin-bottom:8px;font-weight:500;">选项列表 (${dim.options ? dim.options.length : 0})</div>
+          ${optionsHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+async function toggleDimActive(dimId, newActive) {
+  try {
+    const res = await fetch(`${API}/api/mixer/admin/dimensions/${dimId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+      body: JSON.stringify({ active: newActive })
+    });
+    const result = await res.json();
+    if (result.success) {
+      toast(newActive ? '维度已启用' : '维度已禁用', 'success');
+      loadMixerConfig();
+    } else {
+      toast(result.error || '操作失败', 'error');
+    }
+  } catch (e) { toast('操作失败', 'error'); }
+}
+async function toggleOptionActive(optId, newActive) {
+  try {
+    const res = await fetch(`${API}/api/mixer/admin/options/${optId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+      body: JSON.stringify({ active: newActive })
+    });
+    const result = await res.json();
+    if (result.success) {
+      toast(newActive ? '选项已启用' : '选项已禁用', 'success');
+      loadMixerConfig();
+    } else {
+      toast(result.error || '操作失败', 'error');
+    }
+  } catch (e) { toast('操作失败', 'error'); }
+}
+
+// ==================== 背景音乐管理 ====================
+async function loadMusicSettings() {
+  try {
+    const res = await fetch(`${API}/api/music/admin/settings`, { headers: { 'Authorization': `Bearer ${getToken()}` } });
+    const data = await res.json();
+    if (data.success) {
+      const s = data.data;
+      document.getElementById('music-enabled').value = s.music_enabled || '1';
+      document.getElementById('music-volume').value = s.music_volume || '30';
+      document.getElementById('music-auto-play').value = s.music_auto_play || '1';
+      document.getElementById('music-fade').value = s.music_fade_duration || '2000';
+      document.getElementById('music-fs-client-id').value = s.freesound_client_id || '';
+      document.getElementById('music-fs-client-secret').value = s.freesound_client_secret || '';
+    }
+  } catch (e) {}
+}
+
+async function saveMusicSetting(key, value) {
+  try {
+    await fetch(`${API}/api/music/admin/settings`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+      body: JSON.stringify({ [key]: value })
+    });
+    toast('已保存', 'success');
+  } catch (e) { toast('保存失败', 'error'); }
+}
+
+async function loadMusicTracks() {
+  try {
+    const res = await fetch(`${API}/api/music/local`, { headers: { 'Authorization': `Bearer ${getToken()}` } });
+    const data = await res.json();
+    const el = document.getElementById('music-tracks-list');
+    if (!data.success || data.data.length === 0) {
+      el.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;">暂无本地音乐，请下载后放入 music/ 目录</p>';
+      return;
+    }
+    el.innerHTML = data.data.map(t => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;">
+        <div>
+          <strong>🎵 ${t.title}</strong>
+          <span style="font-size:.75rem;color:var(--text-muted);margin-left:8px;">${t.source}</span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <audio controls src="/api/music/stream/${t.id}" style="height:32px;width:200px;"></audio>
+        </div>
+      </div>
+    `).join('');
+  } catch (e) { toast('加载失败', 'error'); }
+}
+
+// Init - check login
+if (getToken()) { showApp(); }
+</script>
+</body>
+</html>

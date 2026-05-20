@@ -1,0 +1,4842 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>情绪实验室 | Mood Lab</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230A0A0A'/><text x='50' y='68' font-family='serif' font-size='52' font-weight='700' fill='%23C4A265' text-anchor='middle'>ML</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&family=Noto+Sans+SC:wght@300;400;500;600&family=Ibarra+Real+Nova:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0A0A0A;
+      --bg-card: #141414;
+      --bg-card-hover: #1A1A1A;
+      --text-primary: #E8E3DB;
+      --text-secondary: #8A8A8A;
+      --text-muted: #5A5A5A;
+      --accent-gold: #C4A265;
+      --accent-warm: #D4A76A;
+      --border-subtle: #2A2A2A;
+      --border-strong: #444;
+      --ambient-1: #C4A265;
+      --ambient-2: #8B7355;
+      --accent-color: #C4A265;
+      --transition-smooth: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      --shadow-soft: 0 8px 32px rgba(0,0,0,0.4);
+      --shadow-glow: 0 0 60px rgba(196, 162, 101, 0.15);
+      --glass-bg: rgba(20, 20, 20, 0.85);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass-blur: 20px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      line-height: 1.7;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ===== DYNAMIC BACKGROUND ===== */
+    #ambient {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+      background: 
+        radial-gradient(1200px 600px at 80% 10%, var(--ambient-1)08, transparent 60%),
+        radial-gradient(800px 800px at 20% 80%, var(--ambient-2)06, transparent 50%),
+        var(--bg-dark);
+      transition: var(--transition-smooth);
+    }
+
+    .ambient-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.15;
+      animation: float 20s ease-in-out infinite;
+    }
+
+    .orb-1 {
+      width: 500px;
+      height: 500px;
+      background: var(--ambient-1);
+      top: -100px;
+      right: -100px;
+      animation-delay: 0s;
+    }
+
+    .orb-2 {
+      width: 400px;
+      height: 400px;
+      background: var(--ambient-2);
+      bottom: -50px;
+      left: -50px;
+      animation-delay: -10s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(30px, -30px) scale(1.05); }
+      50% { transform: translate(-20px, 20px) scale(0.95); }
+      75% { transform: translate(20px, 40px) scale(1.02); }
+    }
+
+    /* ===== MOBILE MENU TOGGLE ===== */
+    #mobile-menu-toggle {
+      display: none;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1002;
+      width: 50px;
+      height: 50px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      cursor: pointer;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: var(--transition-smooth);
+    }
+
+    #mobile-menu-toggle:hover {
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 20px rgba(196, 162, 101, 0.2);
+    }
+
+    .menu-line {
+      width: 24px;
+      height: 2px;
+      background: var(--text-primary);
+      border-radius: 1px;
+      transition: var(--transition-smooth);
+    }
+
+    #mobile-menu-toggle.open .menu-line:nth-child(1) {
+      transform: rotate(45deg) translate(5px, 5px);
+    }
+
+    #mobile-menu-toggle.open .menu-line:nth-child(2) {
+      opacity: 0;
+    }
+
+    #mobile-menu-toggle.open .menu-line:nth-child(3) {
+      transform: rotate(-45deg) translate(6px, -6px);
+    }
+
+    /* ===== SIDEBAR ===== */
+    #sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 100vh;
+      width: 80px;
+      background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-dark) 100%);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 0;
+      z-index: 1000;
+      transition: var(--transition-smooth);
+    }
+
+    .sidebar-logo {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, var(--accent-gold), var(--accent-warm));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Ibarra Real Nova', serif;
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--bg-dark);
+      margin-bottom: 40px;
+      box-shadow: 0 4px 20px rgba(196, 162, 101, 0.3);
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      flex: 1;
+    }
+
+    .nav-item {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: var(--transition-smooth);
+      background: transparent;
+    }
+
+    .nav-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 0;
+      background: var(--accent-gold);
+      border-radius: 0 2px 2px 0;
+      transition: var(--transition-smooth);
+    }
+
+    .nav-item.active::before { height: 60%; }
+    .nav-item.active { background: var(--bg-card-hover); }
+    .nav-item:hover { background: var(--bg-card-hover); }
+
+    .nav-icon {
+      font-size: 20px;
+      transition: var(--transition-smooth);
+    }
+
+    .nav-item.active .nav-icon { transform: scale(1.1); }
+
+    .nav-tooltip {
+      position: absolute;
+      left: 70px;
+      background: var(--bg-card-hover);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+      white-space: nowrap;
+      opacity: 0;
+      visibility: hidden;
+      transition: var(--transition-smooth);
+      z-index: 100;
+    }
+
+    .nav-item:hover .nav-tooltip {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    #main-container {
+      margin-left: 80px;
+      min-height: 100vh;
+      transition: var(--transition-smooth);
+    }
+
+    .section {
+      min-height: 100vh;
+      padding: 60px 60px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .section-content {
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .section-title {
+      font-family: 'Noto Serif SC', serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 600;
+      margin-bottom: 15px;
+      background: linear-gradient(135deg, var(--text-primary), var(--accent-gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .section-subtitle {
+      font-family: 'Ibarra Real Nova', serif;
+      font-style: italic;
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      letter-spacing: 0.1em;
+    }
+
+    /* ===== HERO SECTION ===== */
+    #hero-section {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .hero-content {
+      max-width: 800px;
+    }
+
+    .hero-greeting {
+      font-family: 'Ibarra Real Nova', serif;
+      font-size: 1rem;
+      letter-spacing: 0.3em;
+      color: var(--accent-gold);
+      margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+
+    .hero-title {
+      font-family: 'Noto Serif SC', serif;
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 30px;
+    }
+
+    .hero-title .highlight {
+      color: var(--accent-gold);
+    }
+
+    .hero-subtitle {
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+      margin-bottom: 50px;
+      line-height: 1.8;
+    }
+
+    .hero-roles {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 60px;
+      flex-wrap: wrap;
+    }
+
+    .role-item {
+      text-align: center;
+      padding: 20px 30px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      backdrop-filter: blur(var(--glass-blur));
+      transition: var(--transition-smooth);
+    }
+
+    .role-item:hover {
+      transform: translateY(-5px);
+      border-color: var(--accent-gold);
+      box-shadow: 0 10px 40px rgba(196, 162, 101, 0.15);
+    }
+
+    .role-icon {
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+    }
+
+    .role-name {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .role-desc {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 15px 35px;
+      border-radius: 50px;
+      font-family: 'Noto Serif SC', serif;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      text-decoration: none;
+      border: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-gold), var(--accent-warm));
+      color: var(--bg-dark);
+      box-shadow: 0 4px 20px rgba(196, 162, 101, 0.4);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(196, 162, 101, 0.5);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-primary);
+      border: 1px solid var(--border-strong);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-card);
+      border-color: var(--accent-gold);
+    }
+
+    /* ===== LAB SECTION ===== */
+    #lab-section {
+      background: linear-gradient(180deg, transparent, var(--bg-dark));
+      padding-top: 30px;
+      padding-bottom: 30px;
+    }
+
+    #lab-section .section-header { margin-bottom: 12px; }
+    #lab-section .section-title { font-size: clamp(1.3rem, 2.5vw, 1.6rem); }
+    #lab-section .section-subtitle { font-size: 0.82rem; margin-bottom: 0; }
+    }
+
+    #lab-section .section-header {
+      margin-bottom: 30px;
+    }
+
+    /* ===== UPLOAD SECTION ===== */
+    #upload-section {
+      margin-bottom: 40px;
+    }
+
+    .upload-container {
+      background: var(--glass-bg);
+      border: 2px dashed var(--border-subtle);
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      backdrop-filter: blur(var(--glass-blur));
+      position: relative;
+      overflow: hidden;
+    }
+
+    .upload-container:hover,
+    .upload-container.dragover {
+      border-color: var(--accent-gold);
+      background: rgba(196, 162, 101, 0.05);
+      box-shadow: 0 0 40px rgba(196, 162, 101, 0.1);
+    }
+
+    .upload-icon {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .upload-title {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+    }
+
+    .upload-desc {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      margin-bottom: 20px;
+    }
+
+    .upload-formats {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .format-tag {
+      padding: 6px 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .quota-info {
+      margin-top: 20px;
+      padding: 15px;
+      background: var(--bg-card);
+      border-radius: 12px;
+    }
+
+    .quota-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .quota-label {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .quota-count {
+      font-family: 'Ibarra Real Nova', serif;
+      font-size: 1.1rem;
+      color: var(--accent-gold);
+    }
+
+    .quota-bar {
+      height: 8px;
+      background: var(--bg-dark);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .quota-progress {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-gold), var(--accent-warm));
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    .upload-preview {
+      margin-top: 20px;
+      display: none;
+    }
+
+    .upload-preview.visible {
+      display: block;
+    }
+
+    .preview-container {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px;
+      background: var(--bg-card);
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      flex-wrap: wrap;
+    }
+
+    .preview-image {
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+
+    .preview-info {
+      flex: 1;
+    }
+
+    .preview-name {
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+
+    .preview-size {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .preview-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .status-indicator.success { background: #4CAF50; }
+    .status-indicator.error { background: #F44336; }
+    .status-indicator.loading { background: #FFC107; animation: blink 1s infinite; }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .status-text {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    /* ===== LAB MIXER ===== */
+    #lab-mixer-section {
+      display: none;
+      padding-top: 40px;
+    }
+
+    #lab-mixer-section.visible {
+      display: block;
+    }
+
+    .lab-container {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+      align-items: start;
+    }
+
+    /* === Control Panel === */
+    .control-panel {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 18px 20px;
+      backdrop-filter: blur(var(--glass-blur));
+      box-shadow: var(--shadow-soft);
+    }
+
+    .panel-title {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .panel-subtitle {
+      font-family: 'Ibarra Real Nova', serif;
+      font-style: italic;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      letter-spacing: 0.05em;
+    }
+
+    .control-group {
+      margin-bottom: 8px;
+    }
+
+    .control-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .control-icon { font-size: 1.1rem; }
+
+    .select-wrapper {
+      position: relative;
+    }
+
+    .control-select {
+      width: 100%;
+      padding: 6px 32px 6px 10px;
+      font-size: 0.85rem;
+      background: var(--bg-dark);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      color: var(--text-primary);
+      font-family: 'Noto Sans SC', sans-serif;
+      font-size: 1rem;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      transition: var(--transition-smooth);
+    }
+
+    .control-select:hover { border-color: var(--accent-gold); }
+    .control-select:focus {
+      outline: none;
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 0 3px rgba(196, 162, 101, 0.1);
+    }
+
+    .select-arrow {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: var(--text-muted);
+      transition: transform 0.3s;
+    }
+
+    .control-select:focus + .select-arrow {
+      transform: translateY(-50%) rotate(180deg);
+    }
+
+    /* Waveform */
+    .waveform-container {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--border-subtle);
+    }
+
+    .waveform-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    #waveform {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      height: 20px;
+    }
+
+    .waveform-bar {
+      width: 3px;
+      background: var(--accent-gold);
+      border-radius: 2px;
+      transition: background 0.3s;
+    }
+
+    /* === Result Panel === */
+    .result-panel {
+      position: relative;
+    }
+
+    #recipe-display {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 14px 16px;
+      min-height: 260px;
+      backdrop-filter: blur(var(--glass-blur));
+      box-shadow: var(--shadow-soft), var(--shadow-glow);
+      position: relative;
+      overflow: hidden;
+      transition: opacity 0.4s ease;
+    }
+
+    #recipe-display.fading { opacity: 0.4; }
+
+    .result-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .badge-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+      padding: 6px 14px;
+      background: var(--bg-dark);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+    }
+
+    .match-percent {
+      font-family: 'Ibarra Real Nova', serif;
+      font-size: 1.1rem;
+      color: var(--accent-gold);
+      font-weight: 600;
+    }
+
+    .result-header {
+      margin-bottom: 8px;
+    }
+
+    .result-category {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 4px 12px;
+      background: rgba(196, 162, 101, 0.1);
+      border: 1px solid rgba(196, 162, 101, 0.3);
+      border-radius: 20px;
+      color: var(--accent-gold);
+      margin-bottom: 12px;
+    }
+
+    .result-name {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 2px;
+      line-height: 1.2;
+    }
+
+    .result-name-en {
+      font-family: 'Ibarra Real Nova', serif;
+      font-style: italic;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    .result-desc {
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+      line-height: 1.5;
+      margin-bottom: 8px;
+      padding: 6px 0;
+      border-top: 1px dashed var(--border-subtle);
+      border-bottom: 1px dashed var(--border-subtle);
+    }
+
+    /* Palette */
+    .palette-wrapper {
+      margin-bottom: 8px;
+    }
+
+    .section-mini-title {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+    }
+
+    #palette {
+      display: flex;
+      gap: 8px;
+    }
+
+    .palette-swatch {
+      flex: 1;
+      height: 28px;
+      border-radius: 6px;
+      transition: transform 0.3s;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .palette-swatch:hover { transform: scale(1.05) translateY(-2px); }
+    .palette-swatch::after {
+      content: attr(title);
+      position: absolute;
+      bottom: 5px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.7);
+      opacity: 0;
+      transition: opacity 0.3s;
+      background: rgba(0,0,0,0.5);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .palette-swatch:hover::after { opacity: 1; }
+
+    /* Tone Tags */
+    .tags-wrapper {
+      margin-bottom: 8px;
+    }
+
+    #tone-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tone-tag {
+      font-size: 0.72rem;
+      padding: 3px 10px;
+      background: var(--bg-dark);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      color: var(--text-secondary);
+      transition: var(--transition-smooth);
+    }
+
+    .tone-tag:hover {
+      border-color: var(--accent-gold);
+      color: var(--accent-gold);
+    }
+
+    /* Music Section */
+    .music-wrapper {
+      margin-bottom: 6px;
+    }
+
+    .music-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .music-column {
+      background: var(--bg-dark);
+      border-radius: 8px;
+      padding: 8px;
+    }
+
+    .music-column-title {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    #albums-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+.album-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+
+    .album-item:hover { background: var(--bg-card); }
+
+    .album-cover-placeholder {
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.55rem;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 4px;
+    }
+
+    .album-name {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 160px;
+    }
+
+    #tracks-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .track-item {
+      font-size: 0.75rem;
+      padding: 2px 4px;
+      border-radius: 3px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.3s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .track-item:hover { background: var(--bg-card); }
+
+    .track-icon {
+      color: var(--accent-gold);
+      font-size: 0.7rem;
+    }
+
+    /* Runners */
+    .runners-wrapper {
+      margin-top: 6px;
+    }
+
+    #runners {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .runner-card {
+      background: var(--bg-dark);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 4px 6px;
+      text-align: center;
+      text-align: center;
+      transition: var(--transition-smooth);
+      cursor: pointer;
+    }
+
+    .runner-card:hover {
+      border-color: var(--accent-gold);
+      transform: translateY(-2px);
+    }
+
+    .runner-name {
+      font-size: 0.75rem;
+      font-weight: 500;
+      margin-bottom: 1px;
+    }
+
+    .runner-category {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .runner-pct {
+      font-family: 'Ibarra Real Nova', serif;
+      font-size: 0.9rem;
+      color: var(--accent-gold);
+    }
+
+    /* Ratio Bar */
+    .ratio-wrapper {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--border-subtle);
+    }
+
+    .ratio-bar-container {
+      display: flex;
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+      background: var(--bg-dark);
+    }
+
+    .ratio-segment {
+      height: 100%;
+      transition: width 0.5s ease;
+    }
+
+    .ratio-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ===== CTA BUTTON ===== */
+    .lab-cta-container {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    .btn-book-recipe {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 20px;
+      font-size: 0.88rem;
+      background: linear-gradient(135deg, var(--accent-gold), var(--accent-warm));
+      color: var(--bg-dark);
+      font-family: 'Noto Serif SC', serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      box-shadow: 0 4px 20px rgba(196, 162, 101, 0.4);
+    }
+
+    .btn-book-recipe:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 40px rgba(196, 162, 101, 0.5);
+    }
+
+    .btn-book-recipe .icon {
+      font-size: 1.3rem;
+    }
+
+    /* ===== AI SECTION ===== */
+    #ai-section {
+      background: linear-gradient(180deg, var(--bg-dark), transparent);
+    }
+
+    #ai-projects {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 30px;
+    }
+
+    .project-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 30px;
+      backdrop-filter: blur(var(--glass-blur));
+      transition: var(--transition-smooth);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .project-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent-gold), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .project-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(196, 162, 101, 0.3);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    .project-card:hover::before { opacity: 1; }
+
+    .project-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .project-icon {
+      font-size: 2.5rem;
+    }
+
+    .project-status {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .status-active {
+      background: rgba(76, 175, 80, 0.15);
+      color: #81C784;
+      border: 1px solid rgba(76, 175, 80, 0.3);
+    }
+
+    .status-beta {
+      background: rgba(255, 152, 0, 0.15);
+      color: #FFB74D;
+      border: 1px solid rgba(255, 152, 0, 0.3);
+    }
+
+    .status-concept {
+      background: rgba(158, 158, 158, 0.15);
+      color: #BDBDBD;
+      border: 1px solid rgba(158, 158, 158, 0.3);
+    }
+
+    .project-name {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 1.4rem;
+      margin-bottom: 12px;
+    }
+
+    .project-desc {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    .project-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 25px;
+    }
+
+    .feature-tag {
+      padding: 6px 14px;
+      background: var(--bg-dark);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .project-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .project-button {
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: var(--transition-smooth);
+      cursor: pointer;
+      border: none;
+    }
+
+    .project-primary {
+      background: linear-gradient(135deg, var(--accent-gold), var(--accent-warm));
+      color: var(--bg-dark);
+      font-weight: 500;
+    }
+
+    .project-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(196, 162, 101, 0.4);
+    }
+
+    .project-secondary {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .project-secondary:hover {
+      border-color: var(--accent-gold);
+      color: var(--accent-gold);
+    }
+
+    /* ===== PHONE/ESTIMATE SECTION ===== */
+    #phone-section {
+      background: linear-gradient(180deg, transparent, var(--bg-dark));
+    }
+
+    /* Tabs */
+    .phone-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 24px;
+      background: var(--glass-bg);
+      border-radius: 16px;
+      padding: 4px;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+      border: 1px solid var(--glass-border);
+    }
+
+    .phone-tab {
+      flex: 1;
+      padding: 12px 20px;
+      text-align: center;
+      cursor: pointer;
+      border-radius: 12px;
+      transition: var(--transition-smooth);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .phone-tab.active {
+      background: linear-gradient(135deg, var(--accent-gold), var(--accent-warm));
+      color: var(--bg-dark);
+    }
+
+    .phone-tab.active .tab-icon {
+      color: var(--bg-dark);
+    }
+
+    .tab-icon {
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+    }
+
+    .tab-label {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .phone-tab-content {
+      display: none;
+    }
+
+    .phone-tab-content.active {
+      display: block;
+    }
+
+    /* Sales Section */
+    .sales-section {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .sales-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .sales-header h3 {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+    }
+
+    .sales-subtitle {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    .sales-category {
+      margin-bottom: 40px;
+    }
+
+    .sales-category-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .sales-category-icon {
+      font-size: 1.3rem;
+    }
+
+    .sales-category-title {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 1.15rem;
+      font-weight: 600;
+    }
+
+    .sales-badge {
+      background: var(--accent-gold);
+      color: var(--bg-dark);
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .sales-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 1024px) {
+      .sales-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sales-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .sales-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .sales-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      backdrop-filter: blur(var(--glass-blur));
+    }
+
+    .sales-card:hover {
+      border-color: var(--accent-gold);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 30px rgba(196, 162, 101, 0.2);
+    }
+
+    .sales-card.featured {
+      border-color: var(--accent-gold);
+      box-shadow: 0 4px 20px rgba(196, 162, 101, 0.15);
+    }
+
+    .sales-card-image {
+      width: 100%;
+      height: 140px;
+      background: var(--card-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      overflow: hidden;
+    }
+
+    .sales-card-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .sales-card-content {
+      padding: 16px;
+    }
+
+    .sales-card-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+    }
+
+    .sales-card-series {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .sales-card-price {
+      font-family: 'Ibarra Real Nova', serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--accent-gold);
+    }
+
+    .sales-card-price .price-label {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      font-weight: 400;
+      font-family: inherit;
+    }
+
+    .sales-card-stock {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    .sales-card-stock.in-stock {
+      background: rgba(52, 152, 219, 0.15);
+      color: #3498db;
+    }
+
+    .sales-card-stock.out-of-stock {
+      background: rgba(231, 76, 60, 0.15);
+      color: #e74c3c;
+    }
+
+    /* Sales Filters */
+    .sales-filters select:focus,
+    .sales-filters input:focus {
+      border-color: var(--accent-gold);
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(196, 162, 101, 0.2);
+    }
+    .sales-filters select option {
+      background: var(--bg-card);
+      color: var(--text-primary);
+    }
+
+    /* Progress */
+    .est-progress { display: flex; gap: 4px; margin-bottom: 20px; max-width: 500px; margin-left: auto; margin-right: auto; }
+    .est-progress-dot { flex: 1; height: 4px; border-radius: 2px; background: var(--border-subtle); transition: 0.3s; }
+    .est-progress-dot.active { background: var(--accent-gold); }
+    .est-progress-dot.done { background: #2ecc71; }
+
+    /* Steps */
+    .est-step { display: none; max-width: 500px; margin: 0 auto; }
+    .est-step.active { display: block; }
+    .est-step-title { font-family: 'Noto Serif SC', serif; font-size: 1.15rem; font-weight: 600; margin-bottom: 6px; }
+    .est-step-tip { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 16px; }
+    .est-back { background: none; border: none; color: var(--accent-gold); font-size: 0.9rem; cursor: pointer; padding: 8px 0; margin-bottom: 12px; }
+    .est-section-label { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 10px; margin-top: 16px; font-weight: 500; }
+
+    /* Category grid */
+    .est-cat-grid { display: flex; flex-direction: column; gap: 16px; }
+    .est-cat-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .est-cat-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 24px 16px; text-align: center; cursor: pointer; transition: var(--transition-smooth); backdrop-filter: blur(var(--glass-blur)); }
+    .est-cat-card:hover { border-color: var(--accent-gold); transform: translateY(-2px); }
+    .est-cat-card.featured { border-color: var(--accent-gold); background: rgba(196, 162, 101, 0.1); }
+    .est-cat-card .icon { font-size: 2.2rem; margin-bottom: 10px; }
+    .est-cat-card .name { font-size: 0.95rem; font-weight: 500; }
+    .est-cat-card .featured-tag { display: inline-block; background: var(--accent-gold); color: var(--bg-dark); font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; margin-top: 4px; font-weight: 600; }
+
+    /* Device list */
+    .est-device-list { display: flex; flex-direction: column; gap: 8px; }
+    .est-device-item { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: var(--transition-smooth); }
+    .est-device-item:hover { border-color: var(--accent-gold); }
+    .est-device-item .icon { font-size: 1.4rem; }
+    .est-device-item .name { flex: 1; font-size: 0.95rem; }
+    .est-device-item .code { color: var(--text-muted); font-size: 0.8rem; }
+    .est-device-item .arrow { color: var(--text-muted); }
+
+    /* Option buttons */
+    .est-option-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+    .est-option-btn { padding: 12px 20px; background: var(--glass-bg); border: 1.5px solid var(--border-subtle); border-radius: 12px; font-size: 0.9rem; color: var(--text-primary); cursor: pointer; transition: 0.2s; text-align: center; min-width: 80px; }
+    .est-option-btn:hover, .est-option-btn.selected { border-color: var(--accent-gold); background: rgba(196, 162, 101, 0.1); color: var(--accent-gold); }
+
+    /* Warranty toggle */
+    .est-warranty-toggle { display: flex; gap: 0; background: var(--glass-bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-subtle); margin-bottom: 16px; }
+    .est-warranty-btn { flex: 1; padding: 14px; text-align: center; cursor: pointer; font-size: 0.95rem; transition: 0.2s; color: var(--text-secondary); }
+    .est-warranty-btn.active { background: linear-gradient(135deg, var(--accent-gold), var(--accent-warm)); color: var(--bg-dark); font-weight: 600; }
+
+    /* Condition cards */
+    .est-cond-grid { display: flex; flex-direction: column; gap: 10px; }
+    .est-cond-card { background: var(--glass-bg); border: 1.5px solid var(--border-subtle); border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: 0.2s; }
+    .est-cond-card:hover, .est-cond-card.selected { border-color: var(--accent-gold); background: rgba(196, 162, 101, 0.08); }
+    .est-cond-header { display: flex; align-items: center; }
+    .est-cond-grade { display: inline-block; width: 28px; height: 28px; border-radius: 6px; text-align: center; line-height: 28px; font-weight: 700; font-size: 0.8rem; color: #fff; margin-right: 10px; }
+    .est-cond-name { font-weight: 500; font-size: 0.95rem; }
+    .est-cond-desc { color: var(--text-secondary); font-size: 0.8rem; margin-top: 6px; padding-left: 38px; }
+    .grade-S { background: #2ecc71; } .grade-A { background: #3498db; } .grade-B { background: #f39c12; } .grade-C { background: #e67e22; } .grade-D { background: #e74c3c; } .grade-E { background: #8e44ad; }
+
+    /* Result */
+    .est-result-box { text-align: center; padding: 24px 0; }
+    .est-result-device { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 8px; }
+    .est-result-price { font-size: 3rem; font-weight: 700; color: var(--accent-gold); font-family: 'Ibarra Real Nova', serif; }
+    .est-result-price .yen { font-size: 1.5rem; vertical-align: top; margin-right: 2px; }
+    .est-result-date { color: var(--text-muted); font-size: 0.8rem; margin-top: 8px; }
+
+    /* Deductions */
+    .est-deduct-section { margin-top: 24px; }
+    .est-deduct-title { font-size: 0.9rem; font-weight: 600; margin-bottom: 10px; color: var(--text-secondary); }
+    .est-deduct-list { display: flex; flex-direction: column; gap: 6px; }
+    .est-deduct-item { display: flex; justify-content: space-between; padding: 10px 14px; background: var(--glass-bg); border-radius: 8px; font-size: 0.85rem; }
+    .est-deduct-item .amount { color: #e74c3c; font-weight: 600; }
+
+    /* Contact box */
+    .est-contact-box { margin-top: 24px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 24px; text-align: center; backdrop-filter: blur(var(--glass-blur)); }
+    .est-contact-box h3 { font-family: 'Noto Serif SC', serif; font-size: 1.1rem; margin-bottom: 8px; }
+    .est-contact-box p { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 12px; }
+    .est-phone { font-size: 1.4rem; font-weight: 600; color: var(--accent-gold); margin: 10px 0; font-family: 'Ibarra Real Nova', serif; }
+    .est-call-btn { display: inline-block; padding: 12px 32px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-warm)); color: var(--bg-dark); border-radius: 12px; font-weight: 600; text-decoration: none; font-size: 0.95rem; transition: var(--transition-smooth); }
+    .est-call-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(196, 162, 101, 0.4); }
+    .est-sub { color: var(--text-muted); font-size: 0.8rem; margin-top: 10px; }
+
+    /* ===== CONTACT SECTION ===== */
+    #contact-section {
+      min-height: auto;
+      padding-bottom: 100px;
+    }
+
+    .contact-container {
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .contact-info {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 40px;
+      backdrop-filter: blur(var(--glass-blur));
+    }
+
+    .contact-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-gold), var(--accent-warm));
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      box-shadow: 0 0 40px rgba(196, 162, 101, 0.3);
+    }
+
+    .contact-name {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+    }
+
+    .contact-tagline {
+      font-family: 'Ibarra Real Nova', serif;
+      font-style: italic;
+      color: var(--text-secondary);
+      margin-bottom: 30px;
+    }
+
+    .contact-methods {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .contact-method {
+      padding: 15px 30px;
+      background: var(--bg-dark);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      transition: var(--transition-smooth);
+      cursor: pointer;
+    }
+
+    .contact-method:hover {
+      border-color: var(--accent-gold);
+      transform: translateY(-2px);
+    }
+
+    .contact-method-icon {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+    }
+
+    .contact-method-label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    /* ===== GLASSMORPHISM MODAL ===== */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(5px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 20px;
+    }
+
+    .modal-overlay.visible {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+      backdrop-filter: blur(var(--glass-blur));
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+      position: relative;
+      animation: modalSlideIn 0.3s ease;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(231, 76, 60, 0.2);
+      border: 2px solid rgba(231, 76, 60, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #e74c3c;
+      transition: var(--transition-smooth);
+    }
+
+    .modal-close:hover {
+      background: #e74c3c;
+      border-color: #e74c3c;
+      color: #fff;
+    }
+
+    .modal-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .modal-icon {
+      font-size: 3rem;
+      margin-bottom: 15px;
+    }
+
+    .modal-title {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+
+    .modal-subtitle {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    .modal-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-label {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .form-input,
+    .form-textarea {
+      padding: 14px 18px;
+      background: var(--bg-dark);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 1rem;
+      transition: var(--transition-smooth);
+    }
+
+    .form-input:focus,
+    .form-textarea:focus {
+      outline: none;
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 0 3px rgba(196, 162, 101, 0.1);
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .form-submit {
+      padding: 15px;
+      background: linear-gradient(135deg, var(--accent-gold), var(--accent-warm));
+      color: var(--bg-dark);
+      border: none;
+      border-radius: 12px;
+      font-family: 'Noto Serif SC', serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .form-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(196, 162, 101, 0.4);
+    }
+
+    .modal-alternative {
+      margin-top: 25px;
+      padding-top: 25px;
+      border-top: 1px dashed var(--border-subtle);
+      text-align: center;
+    }
+
+    .modal-alt-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 15px;
+    }
+
+    .qr-placeholder {
+      width: 150px;
+      height: 150px;
+      background: var(--bg-dark);
+      border: 2px dashed var(--border-subtle);
+      border-radius: 12px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+    }
+
+    .qr-icon {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    .qr-text {
+      font-size: 0.8rem;
+    }
+
+    /* ===== TOAST NOTIFICATIONS ===== */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 3000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 15px 20px;
+      backdrop-filter: blur(var(--glass-blur));
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 300px;
+      animation: toastSlideIn 0.3s ease;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    @keyframes toastSlideIn {
+      from {
+        opacity: 0;
+        transform: translateX(100px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .toast-icon {
+      font-size: 1.3rem;
+    }
+
+    .toast-message {
+      flex: 1;
+      font-size: 0.9rem;
+    }
+
+    .toast-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0;
+    }
+
+    .toast.success { border-left: 3px solid #4CAF50; }
+    .toast.error { border-left: 3px solid #F44336; }
+    .toast.warning { border-left: 3px solid #FFC107; }
+    .toast.info { border-left: 3px solid #2196F3; }
+
+    /* ===== SKELETON LOADING ===== */
+    .skeleton {
+      background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-card-hover) 50%, var(--bg-card) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 8px;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ===== RESPONSIVE DESIGN ===== */
+    @media (max-width: 1024px) {
+      #sidebar {
+        transform: translateX(-100%);
+        width: 280px;
+      }
+
+      #sidebar.open {
+        transform: translateX(0);
+        box-shadow: 0 0 100px rgba(0, 0, 0, 0.8);
+      }
+
+      #mobile-menu-toggle {
+        display: flex;
+      }
+
+      #main-container {
+        margin-left: 0;
+      }
+
+      .lab-container {
+        grid-template-columns: 1fr;
+      }
+
+      .section {
+        padding: 60px 30px;
+      }
+
+      .hero-roles {
+        gap: 20px;
+      }
+
+      .role-item {
+        padding: 15px 20px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .section {
+        padding: 50px 20px;
+      }
+
+      .hero-roles {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .role-item {
+        width: 100%;
+        max-width: 280px;
+      }
+
+      .hero-cta {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .btn {
+        width: 100%;
+        max-width: 280px;
+        justify-content: center;
+      }
+
+      #ai-projects {
+        grid-template-columns: 1fr;
+      }
+
+      #phone-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .est-cat-grid { grid-template-columns: 1fr; }
+      .est-option-grid { gap: 8px; }
+      .est-option-btn { min-width: 60px; padding: 10px 14px; font-size: 0.85rem; }
+
+      .music-grid {
+        grid-template-columns: 1fr;
+      }
+
+      #runners {
+        grid-template-columns: 1fr;
+      }
+
+      .control-panel,
+      #recipe-display {
+        padding: 25px;
+      }
+
+      .upload-container {
+        padding: 30px 20px;
+      }
+
+      .preview-container {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .modal-content {
+        padding: 30px 25px;
+        margin: 20px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .section-title {
+        font-size: 1.8rem;
+      }
+
+      .hero-title {
+        font-size: 2rem;
+      }
+
+      .result-name {
+        font-size: 1.5rem;
+      }
+
+      .match-percent {
+        font-size: 1.4rem;
+      }
+
+      .contact-methods {
+        flex-direction: column;
+      }
+
+      .contact-method {
+        width: 100%;
+      }
+    }
+
+    /* Mobile overlay when sidebar is open */
+    @media (max-width: 1024px) {
+      #sidebar.open::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 280px;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: -1;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <!-- Dynamic Background -->
+  <div id="ambient">
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+  </div>
+
+  <!-- Mobile Menu Toggle -->
+  <button id="mobile-menu-toggle" aria-label="菜单">
+    <span class="menu-line"></span>
+    <span class="menu-line"></span>
+    <span class="menu-line"></span>
+  </button>
+
+  <!-- Sidebar Navigation -->
+  <aside id="sidebar">
+    <div class="sidebar-logo">ML</div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" data-section="hero">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-tooltip">首页</span>
+      </div>
+      <div class="nav-item" data-section="lab">
+        <span class="nav-icon">🎨</span>
+        <span class="nav-tooltip">摄影实验室</span>
+      </div>
+      <div class="nav-item" data-section="ai">
+        <span class="nav-icon">🤖</span>
+        <span class="nav-tooltip">AI 实验室</span>
+      </div>
+      <div class="nav-item" data-section="phone">
+        <span class="nav-icon">📱</span>
+        <span class="nav-tooltip">二手机精选</span>
+      </div>
+      <div class="nav-item" data-section="contact">
+        <span class="nav-icon">📬</span>
+        <span class="nav-tooltip">联系我</span>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main id="main-container">
+    <!-- Hero Section -->
+    <section id="hero-section" class="section">
+      <div class="section-content hero-content">
+        <p class="hero-greeting">Hello, I'm</p>
+        <h1 class="hero-title">
+          一位<br>
+          <span class="highlight">自由创作者</span>
+        </h1>
+        <p class="hero-subtitle">
+          以镜头捕捉情感，以代码构建智能，以专业链接价值。<br>
+          在这里，艺术与技术交汇，创意与实用并存。
+        </p>
+
+        <div class="hero-roles">
+          <div class="role-item">
+            <div class="role-icon">📸</div>
+            <div class="role-name">摄影师</div>
+            <div class="role-desc">情绪风格定制</div>
+          </div>
+          <div class="role-item">
+            <div class="role-icon">🤖</div>
+            <div class="role-name">AI 开发者</div>
+            <div class="role-desc">智能工具开发</div>
+          </div>
+          <div class="role-item">
+            <div class="role-icon">📱</div>
+            <div class="role-name">手机交易商</div>
+            <div class="role-desc">二手机精选</div>
+          </div>
+        </div>
+
+        <div class="hero-cta">
+          <button class="btn btn-primary" onclick="scrollToSection('lab')">
+            <span>🎨</span>
+            <span>探索摄影风格</span>
+          </button>
+          <button class="btn btn-secondary" onclick="scrollToSection('ai')">
+            <span>🤖</span>
+            <span>查看 AI 项目</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Lab Section -->
+    <section id="lab-section" class="section">
+      <div class="section-content">
+        <div class="section-header">
+          <h2 class="section-title">情绪实验室</h2>
+          <p class="section-subtitle">The Lab — 调配你的专属视觉记忆</p>
+        </div>
+
+        <!-- Upload Section -->
+        <div id="upload-section">
+          <div class="upload-container" id="upload-area">
+            <input type="file" id="file-input" accept="image/*" style="display: none;">
+            <div class="upload-icon">📷</div>
+            <h3 class="upload-title">上传你的照片</h3>
+            <p class="upload-desc">拖拽图片到此处或点击选择文件，测试风格匹配效果</p>
+            <div class="upload-formats">
+              <span class="format-tag">JPEG</span>
+              <span class="format-tag">PNG</span>
+              <span class="format-tag">WebP</span>
+              <span class="format-tag">GIF</span>
+            </div>
+            <div class="quota-info">
+              <div class="quota-header">
+                <span class="quota-label">今日上传配额</span>
+                <span class="quota-count" id="quota-count">0 / 10</span>
+              </div>
+              <div class="quota-bar">
+                <div class="quota-progress" id="quota-progress" style="width: 0%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="upload-preview" id="upload-preview">
+            <div class="preview-container">
+              <img class="preview-image" id="preview-image" src="" alt="预览">
+              <div class="preview-info">
+                <div class="preview-name" id="preview-name">image.jpg</div>
+                <div class="preview-size" id="preview-size">1.2 MB</div>
+                <div class="preview-status">
+                  <span class="status-indicator" id="status-indicator"></span>
+                  <span class="status-text" id="status-text">准备上传</span>
+                </div>
+              </div>
+              <div id="match-result-inline" style="display:none;flex:1;min-width:180px;padding:12px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;">
+                <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:4px;">匹配风格</div>
+                <div id="match-result-name" style="font-family:'Noto Serif SC',serif;font-size:1rem;font-weight:600;color:var(--accent-gold);margin-bottom:6px;">—</div>
+                <div id="match-result-colors" style="display:flex;gap:3px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lab Mixer (Hidden by default, shown on nav click) -->
+        <div id="lab-mixer-section">
+          <div class="lab-container">
+            <!-- Control Panel -->
+            <div class="control-panel">
+              <h2 class="panel-title">感官调配器</h2>
+              <p class="panel-subtitle">调整参数来匹配你的情绪状态</p>
+              <div id="mixer-controls-dynamic"></div>
+
+              <!-- Waveform -->
+              <div class="waveform-container">
+                <div class="waveform-label">Audio Waveform</div>
+                <div id="waveform"></div>
+              </div>
+
+              <!-- Music Player -->
+              <div id="music-player" style="margin-top:10px;padding:10px 12px;background:var(--bg-dark);border:1px solid var(--border-subtle);border-radius:12px;display:none;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <button id="music-play-btn" style="background:none;border:none;color:var(--accent-gold);font-size:1.2rem;cursor:pointer;padding:4px;">▶</button>
+                  <div style="flex:1;min-width:0;">
+                    <div id="music-title" style="font-size:.78rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
+                    <div id="music-tag" style="font-size:.65rem;color:var(--text-muted);">未匹配</div>
+                  </div>
+                  <input type="range" id="music-volume" min="0" max="100" value="30" style="width:60px;accent-color:var(--accent-gold);height:4px;">
+                </div>
+              </div>
+            </div>
+
+            <!-- Result Panel -->
+            <div class="result-panel">
+              <div id="recipe-display">
+                <div class="result-badge">
+                  <span class="badge-label">Current Match</span>
+                  <span class="match-percent" id="match-pct">0%</span>
+                </div>
+
+                <div class="result-header">
+                  <div class="result-category" id="recipe-category">加载中...</div>
+                  <h3 class="result-name" id="recipe-name">—</h3>
+                  <div class="result-name-en" id="recipe-name-en">—</div>
+                </div>
+
+                <p class="result-desc" id="recipe-desc">选择感官参数来匹配你的情绪状态...</p>
+
+                <!-- Palette -->
+                <div class="palette-wrapper">
+                  <div class="section-mini-title">色彩配方 / Color Palette</div>
+                  <div id="palette"></div>
+                </div>
+
+                <!-- Tone Tags -->
+                <div class="tags-wrapper">
+                  <div class="section-mini-title">调性特征 / Tone Characteristics</div>
+                  <div id="tone-tags"></div>
+                </div>
+
+                <!-- Music Section -->
+                <div class="music-wrapper">
+                  <div class="music-grid">
+                    <div class="music-column">
+                      <div class="music-column-title">
+                        <span>💽</span> 参考专辑
+                      </div>
+                      <div id="albums-list"></div>
+                    </div>
+                    <div class="music-column">
+                      <div class="music-column-title">
+                        <span>🎵</span> 匹配曲目
+                      </div>
+                      <div id="tracks-list"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Runners -->
+                <div class="runners-wrapper">
+                  <div class="section-mini-title">备选风格 / Alternative Matches</div>
+                  <div id="runners"></div>
+                </div>
+
+                <!-- Ratio Bar -->
+                <div class="ratio-wrapper">
+                  <div class="ratio-bar-container">
+                    <div class="ratio-segment" id="ratio-sound" style="width: 33%; background: #C4A265;"></div>
+                    <div class="ratio-segment" id="ratio-touch" style="width: 34%; background: #8B7355;"></div>
+                    <div class="ratio-segment" id="ratio-light" style="width: 33%; background: #D4A76A;"></div>
+                  </div>
+                  <div class="ratio-labels">
+                    <span>Sound</span>
+                    <span>Touch</span>
+                    <span>Light</span>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-top:16px;">
+                <button class="btn-book-recipe" id="btn-book-recipe" style="width:100%;justify-content:center;padding:20px 32px;background:linear-gradient(135deg,rgba(196,162,101,0.2),rgba(196,162,101,0.05));border:2px solid var(--accent-gold);border-radius:16px;color:var(--accent-gold);font-size:1.3rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:12px;transition:all .3s;letter-spacing:0.05em;">
+                  <span style="font-size:1.5rem;">📸</span>
+                  <span>以此风格预约拍摄</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI Section -->
+    <section id="ai-section" class="section">
+      <div class="section-content">
+        <div class="section-header">
+          <h2 class="section-title">AI 实验室</h2>
+          <p class="section-subtitle">AI Lab — 探索智能工具的无限可能</p>
+        </div>
+
+        <div id="ai-projects">
+          <!-- Projects will be loaded here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Phone Section -->
+    <section id="phone-section" class="section">
+      <div class="section-content">
+        <div class="section-header">
+          <h2 class="section-title">手机交易</h2>
+          <p class="section-subtitle">精选二手苹果设备 · 专业回收估价</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="phone-tabs" id="phone-tabs">
+          <div class="phone-tab active" data-tab="sales" onclick="switchPhoneTab('sales')">
+            <span class="tab-icon">🛒</span>
+            <span class="tab-label">购买设备</span>
+          </div>
+          <div class="phone-tab" data-tab="recycle" onclick="switchPhoneTab('recycle')">
+            <span class="tab-icon">💰</span>
+            <span class="tab-label">回收估价</span>
+          </div>
+        </div>
+
+        <!-- Sales Content -->
+        <div class="phone-tab-content active" id="phone-sales-content">
+          <div class="sales-section" id="sales-section">
+            <div class="sales-header">
+              <h3>精选二手苹果设备</h3>
+              <p class="sales-subtitle">所有设备均经过严格检测，提供质保服务</p>
+            </div>
+
+            <div class="sales-filters" style="display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;justify-content:center;align-items:center;">
+              <select id="filter-series" style="padding:10px 14px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:var(--text-primary);font-size:.85rem;min-width:110px;">
+                <option value="">全部系列</option>
+              </select>
+              <select id="filter-model" style="padding:10px 14px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:var(--text-primary);font-size:.85rem;min-width:140px;display:none;">
+                <option value="">全部型号</option>
+              </select>
+              <select id="filter-stock" style="padding:10px 14px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:var(--text-primary);font-size:.85rem;min-width:90px;">
+                <option value="1">有货</option>
+                <option value="">全部</option>
+                <option value="0">缺货</option>
+              </select>
+              <select id="filter-storage" style="padding:10px 14px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:var(--text-primary);font-size:.85rem;min-width:90px;">
+                <option value="">全部容量</option>
+              </select>
+              <select id="filter-grade" style="padding:10px 14px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:var(--text-primary);font-size:.85rem;min-width:100px;">
+                <option value="">全部成色</option>
+                <option value="S">S级 (99新)</option>
+                <option value="A">A级 (95新)</option>
+                <option value="B">B级 (9新)</option>
+                <option value="C">C级 (85新)</option>
+              </select>
+              <select id="filter-color" style="padding:10px 14px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:var(--text-primary);font-size:.85rem;min-width:90px;">
+                <option value="">全部颜色</option>
+              </select>
+              <input type="number" id="filter-budget" placeholder="预算上限 ¥" style="padding:10px 14px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;color:var(--text-primary);font-size:.85rem;width:120px;">
+            </div>
+
+            <!-- Featured: iPhone -->
+            <div class="sales-category" id="sales-iphone-section">
+              <div class="sales-category-header">
+                <span class="sales-category-icon">📱</span>
+                <span class="sales-category-title">iPhone（主推）</span>
+                <span class="sales-badge">热销</span>
+              </div>
+              <div class="sales-grid" id="sales-iphone-grid"></div>
+            </div>
+
+            <!-- Other Devices -->
+            <div class="sales-category" id="sales-other-section">
+              <div class="sales-category-header">
+                <span class="sales-category-icon">📦</span>
+                <span class="sales-category-title">其他设备</span>
+              </div>
+              <div class="sales-grid" id="sales-other-grid"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recycle Content -->
+        <div class="phone-tab-content" id="phone-recycle-content">
+          <div class="section-header" style="margin-top: 0; margin-bottom: 20px;">
+            <h2 class="section-title" style="font-size: 1.4rem;">苹果设备回收估价</h2>
+            <p class="section-subtitle">如实填写信息，估价更精准</p>
+          </div>
+
+          <!-- 进度条 -->
+          <div class="est-progress" id="est-progress"></div>
+
+          <!-- Step 0: 选品类 -->
+          <div class="est-step active" data-estep="0">
+            <div class="est-step-title">选择设备品类</div>
+            <div class="est-cat-grid" id="est-cat-grid"></div>
+          </div>
+
+          <!-- Step 1: 选机型 -->
+          <div class="est-step" data-estep="1">
+            <button class="est-back" onclick="estGoStep(0)">← 返回</button>
+            <div class="est-step-title" id="est-step1-title">选择机型</div>
+            <div class="est-device-list" id="est-device-list"></div>
+          </div>
+
+          <!-- Step 2: 容量 + 保修 -->
+          <div class="est-step" data-estep="2">
+            <button class="est-back" onclick="estGoStep(1)">← 返回</button>
+            <div class="est-step-title" id="est-step2-title"></div>
+            <div class="est-section-label">保修状态</div>
+            <div class="est-warranty-toggle" id="est-warranty-toggle">
+              <div class="est-warranty-btn active" data-w="warranty" onclick="estSelectWarranty('warranty')">在保</div>
+              <div class="est-warranty-btn" data-w="expired" onclick="estSelectWarranty('expired')">过保</div>
+            </div>
+            <div class="est-section-label">存储容量</div>
+            <div class="est-option-grid" id="est-storage-grid"></div>
+          </div>
+
+          <!-- Step 3: 成色 -->
+          <div class="est-step" data-estep="3">
+            <button class="est-back" onclick="estGoStep(2)">← 返回</button>
+            <div class="est-step-title">设备成色评估</div>
+            <div class="est-step-tip">请根据设备实际情况选择</div>
+            <div class="est-cond-grid" id="est-cond-grid"></div>
+          </div>
+
+          <!-- Step 4: 结果 -->
+          <div class="est-step" data-estep="4">
+            <button class="est-back" onclick="estGoStep(3)">← 重新估价</button>
+            <div class="est-step-title">估价结果</div>
+            <div class="est-result-box">
+              <div class="est-result-device" id="est-result-device"></div>
+              <div class="est-result-price"><span class="yen">¥</span><span id="est-result-price">--</span></div>
+              <div class="est-result-date" id="est-result-date"></div>
+            </div>
+            <div class="est-deduct-section" id="est-deduct-section">
+              <div class="est-deduct-title">⚠️ 以下情况可能影响回收价</div>
+              <div class="est-deduct-list" id="est-deduct-list"></div>
+            </div>
+            <div class="est-contact-box">
+              <h3>📞 想出手？联系我们</h3>
+              <p>专业回收，当面验机，即时打款</p>
+              <div class="est-phone" id="est-phone-number">15279139669</div>
+              <a href="tel:15279139669" class="est-call-btn" id="est-call-link">📞 立即拨打</a>
+              <div class="est-sub">微信同号 · 全城上门回收</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact-section" class="section">
+      <div class="section-content contact-container">
+        <div class="section-header">
+          <h2 class="section-title">联系我</h2>
+          <p class="section-subtitle">Get in Touch — 期待与你合作</p>
+        </div>
+
+        <div class="contact-info">
+          <div class="contact-avatar" id="contact-avatar">👨‍💻</div>
+          <h3 class="contact-name" id="contact-name">自由创作者</h3>
+          <p class="contact-tagline" id="contact-tagline">摄影师 · AI 开发者 · 手机交易商</p>
+
+          <div class="contact-details" style="display:flex;flex-direction:column;gap:12px;margin-bottom:30px;text-align:left;max-width:300px;margin-left:auto;margin-right:auto;">
+            <div style="display:flex;align-items:center;gap:10px;"><span>📞</span><span id="contact-phone-display">15279139669</span></div>
+            <div style="display:flex;align-items:center;gap:10px;"><span>📧</span><span id="contact-email-display">admin@example.com</span></div>
+            <div style="display:flex;align-items:center;gap:10px;"><span>💬</span><span>微信号：<span id="contact-wechat-display">your_wechat_id</span></span></div>
+          </div>
+
+          <div id="contact-qr-section" style="margin-bottom:30px;display:none;">
+            <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;">📱 扫码添加微信</p>
+            <div id="contact-qr-image" style="width:160px;height:160px;margin:0 auto;border-radius:12px;overflow:hidden;border:2px solid var(--border-subtle);"></div>
+          </div>
+
+          <div class="contact-methods">
+            <div class="contact-method" id="contact-method-email" onclick="openModal('contact')">
+              <div class="contact-method-icon">📧</div>
+              <div class="contact-method-label">发送邮件</div>
+            </div>
+            <div class="contact-method" id="contact-method-wechat" onclick="openModal('wechat')">
+              <div class="contact-method-icon">💬</div>
+              <div class="contact-method-label">微信咨询</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal Overlay -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-content" id="modal-content">
+      <button class="modal-close" id="modal-close">×</button>
+      <div class="modal-header">
+        <div class="modal-icon" id="modal-icon">📸</div>
+        <h3 class="modal-title" id="modal-title">预约拍摄</h3>
+        <p class="modal-subtitle" id="modal-subtitle">填写以下信息，我会尽快与你联系</p>
+      </div>
+      <form class="modal-form" id="modal-form">
+        <div class="form-group">
+          <label class="form-label">姓名</label>
+          <input type="text" class="form-input" id="form-name" placeholder="请输入您的姓名" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">联系方式</label>
+          <input type="text" class="form-input" id="form-contact" placeholder="手机号或微信号" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">留言内容</label>
+          <textarea class="form-textarea" id="form-message" placeholder="请描述您的需求..."></textarea>
+        </div>
+        <button type="submit" class="form-submit">提交咨询</button>
+      </form>
+      <div class="modal-alternative" id="modal-alternative">
+        <div class="modal-alt-label">或者扫描二维码添加微信</div>
+        <div class="qr-placeholder" id="qr-placeholder">
+          <div class="qr-icon">📱</div>
+          <div class="qr-text">微信二维码</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script>
+    // ===== API CONFIG =====
+    const API_BASE = '';
+
+    // ===== GLOBAL DATA =====
+    let recipes = [];
+    let AI_Projects = [];
+    let Phone_Stock = []; // legacy compat
+    let currentRecipe = null;
+
+    // ===== WEIGHT MATRIX =====
+    // Fallback weightMap (used if API fails)
+    const weightMap = {
+      sound: {
+        'tape-hiss':           [{i:0,w:1.0},{i:4,w:0.4},{i:3,w:0.15}],
+        'digital-distortion':  [{i:1,w:1.0},{i:2,w:0.3},{i:6,w:0.15}],
+        'industrial-metal':    [{i:2,w:1.0},{i:6,w:0.35},{i:1,w:0.1}],
+        'felt-piano':          [{i:3,w:1.0},{i:1,w:0.3},{i:4,w:0.2}],
+        'vinyl-crackle':       [{i:4,w:1.0},{i:0,w:0.45},{i:3,w:0.15}],
+        'citypop-bass':        [{i:5,w:1.0},{i:4,w:0.2},{i:0,w:0.1}],
+        'drum-pulse':          [{i:6,w:1.0},{i:2,w:0.4},{i:1,w:0.1}]
+      },
+      touch: {
+        'dusty-pages':    [{i:0,w:1.0},{i:4,w:0.4},{i:3,w:0.1}],
+        'frost-glass':    [{i:1,w:1.0},{i:3,w:0.3},{i:6,w:0.15}],
+        'rusty-iron':     [{i:2,w:1.0},{i:6,w:0.35},{i:1,w:0.1}],
+        'birch-moss':     [{i:3,w:1.0},{i:1,w:0.25},{i:4,w:0.15}],
+        'old-album':      [{i:4,w:1.0},{i:0,w:0.5},{i:3,w:0.1}],
+        'pool-water':     [{i:5,w:1.0},{i:1,w:0.2},{i:4,w:0.1}],
+        'black-velvet':   [{i:6,w:1.0},{i:2,w:0.3},{i:3,w:0.1}]
+      },
+      light: {
+        'amber-sunset':       [{i:0,w:1.0},{i:4,w:0.5},{i:5,w:0.1}],
+        'overexposed-winter': [{i:1,w:1.0},{i:3,w:0.35},{i:6,w:0.1}],
+        'glitch-neon':        [{i:2,w:1.0},{i:6,w:0.3},{i:5,w:0.15}],
+        'arctic-diffused':    [{i:3,w:1.0},{i:1,w:0.4},{i:4,w:0.1}],
+        'linen-warm':         [{i:4,w:1.0},{i:0,w:0.45},{i:3,w:0.15}],
+        'noon-hard':          [{i:5,w:1.0},{i:2,w:0.2},{i:0,w:0.1}],
+        'rembrandt-side':     [{i:6,w:1.0},{i:2,w:0.25},{i:4,w:0.15}]
+      }
+    };
+
+    // Dynamic mixer data from API
+    let mixerDimensions = [];
+    let mixerWeights = {}; // { option_value: { recipe_idx: weight } }
+    let mixerLoaded = false;
+
+    // ===== WAVEFORM PROFILES =====
+    const waveProfiles = {
+      'tape-hiss':          { speed: 0.03, amp: 8,  base: 3, jitter: 2 },
+      'digital-distortion': { speed: 0.08, amp: 14, base: 2, jitter: 6 },
+      'industrial-metal':   { speed: 0.06, amp: 18, base: 4, jitter: 4 },
+      'felt-piano':         { speed: 0.015,amp: 10, base: 2, jitter: 1 },
+      'vinyl-crackle':      { speed: 0.025,amp: 7,  base: 3, jitter: 3 },
+      'citypop-bass':       { speed: 0.05, amp: 12, base: 4, jitter: 2 },
+      'drum-pulse':         { speed: 0.04, amp: 16, base: 3, jitter: 5 }
+    };
+
+    // ===== DOM REFS =====
+    // Legacy refs (kept for backward compat in analyzeAndMatch)
+    let soundSel = null;
+    let touchSel = null;
+    let lightSel = null;
+    const display = document.getElementById('recipe-display');
+    const ambientEl = document.getElementById('ambient');
+    const sidebar = document.getElementById('sidebar');
+    const labMixerSection = document.getElementById('lab-mixer-section');
+    const navItems = document.querySelectorAll('.nav-item');
+    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+    const uploadArea = document.getElementById('upload-area');
+    const fileInput = document.getElementById('file-input');
+    const uploadPreview = document.getElementById('upload-preview');
+    const previewImage = document.getElementById('preview-image');
+    const previewName = document.getElementById('preview-name');
+    const previewSize = document.getElementById('preview-size');
+    const statusIndicator = document.getElementById('status-indicator');
+    const statusText = document.getElementById('status-text');
+    const quotaCount = document.getElementById('quota-count');
+    const quotaProgress = document.getElementById('quota-progress');
+    const modalOverlay = document.getElementById('modal-overlay');
+    const modalClose = document.getElementById('modal-close');
+    const modalForm = document.getElementById('modal-form');
+    const btnBookRecipe = document.getElementById('btn-book-recipe');
+
+    // ===== WAVEFORM INIT =====
+    const waveformEl = document.getElementById('waveform');
+    const barCount = 24;
+    for (let i = 0; i < barCount; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'waveform-bar';
+      bar.style.height = '4px';
+      waveformEl.appendChild(bar);
+    }
+    const waveformBars = waveformEl.querySelectorAll('.waveform-bar');
+
+    // Waveform animation
+    let waveFrame;
+    let waveTime = 0;
+
+    function animateWaveform(profile) {
+      cancelAnimationFrame(waveFrame);
+      const p = waveProfiles[profile] || waveProfiles['tape-hiss'];
+      function tick() {
+        waveTime += p.speed;
+        waveformBars.forEach((bar, i) => {
+          const h = p.base + Math.abs(Math.sin(waveTime + i * 0.4)) * p.amp
+                    + Math.random() * p.jitter;
+          bar.style.height = h + 'px';
+        });
+        waveFrame = requestAnimationFrame(tick);
+      }
+      tick();
+    }
+
+    // ===== MATCHING ENGINE =====
+    // ===== MIXER DIMENSIONS LOADER =====
+    async function loadMixerDimensions() {
+      try {
+        const [dimsRes, weightsRes] = await Promise.all([
+          fetch(`${API_BASE}/api/mixer/dimensions`),
+          fetch(`${API_BASE}/api/mixer/weights`)
+        ]);
+        const dimsData = await dimsRes.json();
+        const weightsData = await weightsRes.json();
+
+        if (dimsData.success) mixerDimensions = dimsData.data;
+        if (weightsData.success) {
+          mixerWeights = {};
+          weightsData.data.forEach(w => {
+            if (!mixerWeights[w.option_value]) mixerWeights[w.option_value] = {};
+            mixerWeights[w.option_value][w.recipe_idx] = w.weight;
+          });
+        }
+
+        mixerLoaded = true;
+        renderMixerControls();
+        // Update legacy refs
+        soundSel = document.querySelector('.mixer-dim-select[data-dim="sound"]');
+        touchSel = document.querySelector('.mixer-dim-select[data-dim="touch"]');
+        lightSel = document.querySelector('.mixer-dim-select[data-dim="light"]');
+      } catch (e) {
+        console.error('加载调配器维度失败:', e);
+        renderMixerControlsFallback();
+      }
+    }
+
+    function renderMixerControls() {
+      const container = document.getElementById('mixer-controls-dynamic');
+      if (!container || mixerDimensions.length === 0) return;
+
+      let html = '';
+      mixerDimensions.forEach(dim => {
+        if (dim.type === 'select') {
+          html += `<div class="control-group">
+            <label class="control-label"><span class="control-icon">${dim.icon}</span> ${dim.name} / ${dim.label || dim.name}</label>
+            <div class="select-wrapper">
+              <select class="control-select mixer-dim-select" data-dim="${dim.dim_key}" data-dim-id="${dim.id}">
+                ${dim.options.map(opt => `<option value="${opt.option_value}">${opt.icon ? opt.icon + ' ' : ''}${opt.option_label}</option>`).join('')}
+              </select>
+              <div class="select-arrow">▼</div>
+            </div>
+          </div>`;
+        } else if (dim.type === 'slider') {
+          const defaultVal = Math.round((dim.max_val + dim.min_val) / 2);
+          html += `<div class="control-group">
+            <label class="control-label"><span class="control-icon">${dim.icon}</span> ${dim.name} / ${dim.label || dim.name}
+              <span class="mixer-slider-val" data-dim="${dim.dim_key}" style="margin-left:auto;font-family:'Ibarra Real Nova',serif;color:var(--accent-gold);">${defaultVal}</span>
+            </label>
+            <input type="range" class="mixer-dim-slider" data-dim="${dim.dim_key}" data-dim-id="${dim.id}"
+              min="${dim.min_val}" max="${dim.max_val}" step="${dim.step || 1}" value="${defaultVal}"
+              style="width:100%;accent-color:var(--accent-gold);height:6px;cursor:pointer;">
+          </div>`;
+        } else if (dim.type === 'tag') {
+          html += `<div class="control-group">
+            <label class="control-label"><span class="control-icon">${dim.icon}</span> ${dim.name} / ${dim.label || dim.name}</label>
+            <div class="mixer-tag-container" data-dim="${dim.dim_key}" data-dim-id="${dim.id}" style="display:flex;flex-wrap:wrap;gap:6px;">
+              ${dim.options.map(opt => `<span class="mixer-tag" data-value="${opt.option_value}" style="padding:5px 12px;background:var(--bg-dark);border:1.5px solid var(--border-subtle);border-radius:16px;font-size:.8rem;color:var(--text-secondary);cursor:pointer;transition:all 0.2s;">${opt.option_label}</span>`).join('')}
+            </div>
+          </div>`;
+        }
+      });
+      container.innerHTML = html;
+
+      // Bind events
+      container.querySelectorAll('.mixer-dim-select').forEach(sel => {
+        sel.addEventListener('change', render);
+      });
+      container.querySelectorAll('.mixer-dim-slider').forEach(slider => {
+        slider.addEventListener('input', (e) => {
+          const valEl = container.querySelector(`.mixer-slider-val[data-dim="${slider.dataset.dim}"]`);
+          if (valEl) valEl.textContent = slider.value;
+          render();
+        });
+      });
+      container.querySelectorAll('.mixer-tag').forEach(tag => {
+        tag.addEventListener('click', () => {
+          tag.classList.toggle('selected');
+          if (tag.classList.contains('selected')) {
+            tag.style.borderColor = 'var(--accent-gold)';
+            tag.style.color = 'var(--accent-gold)';
+            tag.style.background = 'rgba(196,162,101,0.1)';
+          } else {
+            tag.style.borderColor = 'var(--border-subtle)';
+            tag.style.color = 'var(--text-secondary)';
+            tag.style.background = 'var(--bg-dark)';
+          }
+          render();
+        });
+      });
+    }
+
+    function renderMixerControlsFallback() {
+      const container = document.getElementById('mixer-controls-dynamic');
+      if (!container) return;
+      container.innerHTML = `
+        <div class="control-group">
+          <label class="control-label"><span class="control-icon">🔊</span> 听觉 / Sound</label>
+          <div class="select-wrapper">
+            <select class="control-select mixer-dim-select" data-dim="sound" id="sound-select">
+              <option value="tape-hiss">📼 磁带嘶嘶 — 老书房的午后</option>
+              <option value="digital-distortion">💻 数字失真 — 凌晨三点的 IDE</option>
+              <option value="industrial-metal">⚙️ 工业金属 — 废弃工厂的回响</option>
+              <option value="felt-piano">🎹 绒布钢琴 — 雪后清晨的教堂</option>
+              <option value="vinyl-crackle">📀 黑胶爆裂 — 70年代客厅</option>
+              <option value="citypop-bass">🌈 Citypop 贝斯 — 80年代东京街头</option>
+              <option value="drum-pulse">🥁 鼓点脉冲 — 午夜俱乐部</option>
+            </select>
+            <div class="select-arrow">▼</div>
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label"><span class="control-icon">✋</span> 触觉 / Touch</label>
+          <div class="select-wrapper">
+            <select class="control-select mixer-dim-select" data-dim="touch" id="touch-select">
+              <option value="dusty-pages">📚 泛黄书页 — 二手书店角落</option>
+              <option value="frost-glass">❄️ 磨砂玻璃 — 冬日车窗</option>
+              <option value="rusty-iron">🔩 生锈钢铁 — 废弃机器</option>
+              <option value="birch-moss">🌿 白桦树皮 — 北欧森林</option>
+              <option value="old-album">📀 黑胶封套 — 岁月留声</option>
+              <option value="pool-water">💧 泳池水面 — 夏日午后</option>
+              <option value="black-velvet">🖤 黑色丝绒 — 奢华质感</option>
+            </select>
+            <div class="select-arrow">▼</div>
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label"><span class="control-icon">💡</span> 光线 / Light</label>
+          <div class="select-wrapper">
+            <select class="control-select mixer-dim-select" data-dim="light" id="light-select">
+              <option value="amber-sunset">🌅 琥珀夕阳 — 黄金时刻</option>
+              <option value="overexposed-winter">❄️ 过曝冬日 — 刺眼雪白</option>
+              <option value="glitch-neon">🟦 故障霓虹 — 赛博都市</option>
+              <option value="arctic-diffused">🌨️ 北极漫射 — 柔和均匀</option>
+              <option value="linen-warm">☀️ 亚麻暖光 — 窗边阅读</option>
+              <option value="noon-hard">🌞 正午硬光 — 锐利阴影</option>
+              <option value="rembrandt-side">🎨 伦勃朗侧光 — 戏剧明暗</option>
+            </select>
+            <div class="select-arrow">▼</div>
+          </div>
+        </div>
+      `;
+      soundSel = document.getElementById('sound-select');
+      touchSel = document.getElementById('touch-select');
+      lightSel = document.getElementById('light-select');
+      container.querySelectorAll('.mixer-dim-select').forEach(sel => {
+        sel.addEventListener('change', render);
+      });
+    }
+
+    // Slider influence mapping
+    function applySliderInfluence(dimKey, normalized, scores, weight) {
+      const sliderMaps = {
+        temperature: [
+          { recipeIdx: 1, factor: 1 - normalized },
+          { recipeIdx: 3, factor: 1 - normalized },
+          { recipeIdx: 0, factor: normalized },
+          { recipeIdx: 4, factor: normalized },
+        ],
+        density: [
+          { recipeIdx: 3, factor: 1 - normalized },
+          { recipeIdx: 1, factor: 1 - normalized },
+          { recipeIdx: 2, factor: normalized },
+          { recipeIdx: 6, factor: normalized },
+        ],
+        rhythm: [
+          { recipeIdx: 3, factor: 1 - normalized },
+          { recipeIdx: 4, factor: 1 - normalized },
+          { recipeIdx: 5, factor: normalized },
+          { recipeIdx: 2, factor: normalized },
+        ]
+      };
+      const mapping = sliderMaps[dimKey];
+      if (mapping) {
+        mapping.forEach(({ recipeIdx, factor }) => {
+          scores[recipeIdx] += factor * weight;
+        });
+      }
+    }
+
+    function computeScores(soundVal, touchVal, lightVal) {
+      const scores = new Array(recipes.length).fill(0);
+
+      if (mixerLoaded && mixerDimensions.length > 0) {
+        // Dynamic mode: read from all mixer controls
+        const dimValues = {};
+        document.querySelectorAll('.mixer-dim-select').forEach(sel => {
+          dimValues[sel.dataset.dim] = sel.value;
+        });
+        document.querySelectorAll('.mixer-dim-slider').forEach(slider => {
+          dimValues[slider.dataset.dim] = parseInt(slider.value);
+        });
+        document.querySelectorAll('.mixer-tag.selected').forEach(tag => {
+          const container = tag.closest('.mixer-tag-container');
+          const dim = container.dataset.dim;
+          if (!dimValues[dim]) dimValues[dim] = [];
+          dimValues[dim].push(tag.dataset.value);
+        });
+
+        Object.entries(dimValues).forEach(([dimKey, val]) => {
+          const dim = mixerDimensions.find(d => d.dim_key === dimKey);
+          if (!dim) return;
+
+          if (typeof val === 'string') {
+            // Select type - use weight map
+            const weights = mixerWeights[val] || {};
+            Object.entries(weights).forEach(([idx, w]) => {
+              scores[parseInt(idx)] += w;
+            });
+          } else if (typeof val === 'number') {
+            // Slider type
+            if (dim) {
+              const range = dim.max_val - dim.min_val;
+              const normalized = range > 0 ? (val - dim.min_val) / range : 0.5;
+              applySliderInfluence(dimKey, normalized, scores, dim.weight);
+            }
+          } else if (Array.isArray(val)) {
+            // Tag type - sum weights for each selected tag
+            val.forEach(tagVal => {
+              const weights = mixerWeights[tagVal] || {};
+              Object.entries(weights).forEach(([idx, w]) => {
+                scores[parseInt(idx)] += w;
+              });
+            });
+          }
+        });
+      } else {
+        // Fallback mode: use hardcoded weightMap
+        const sw = weightMap.sound[soundVal] || [];
+        sw.forEach(({i,w}) => scores[i] += w);
+        const tw = weightMap.touch[touchVal] || [];
+        tw.forEach(({i,w}) => scores[i] += w);
+        const lw = weightMap.light[lightVal] || [];
+        lw.forEach(({i,w}) => scores[i] += w);
+      }
+
+      const maxPossible = 3.0;
+      const topIdx = scores.indexOf(Math.max(...scores));
+
+      // Calculate ratios for display (based on first 3 select dimensions)
+      const sw = mixerLoaded ? (mixerWeights[soundVal] || {}) : (weightMap.sound[soundVal] || []);
+      const tw = mixerLoaded ? (mixerWeights[touchVal] || {}) : (weightMap.touch[touchVal] || []);
+      const lw = mixerLoaded ? (mixerWeights[lightVal] || {}) : (weightMap.light[lightVal] || {});
+
+      const sContrib = Array.isArray(sw) ? (sw.find(x => x.i === topIdx)?.w || 0) : (Object.entries(sw).find(([k]) => parseInt(k) === topIdx)?.[1] || 0);
+      const tContrib = Array.isArray(tw) ? (tw.find(x => x.i === topIdx)?.w || 0) : (Object.entries(tw).find(([k]) => parseInt(k) === topIdx)?.[1] || 0);
+      const lContrib = Array.isArray(lw) ? (lw.find(x => x.i === topIdx)?.w || 0) : (Object.entries(lw).find(([k]) => parseInt(k) === topIdx)?.[1] || 0);
+      const totalContrib = sContrib + tContrib + lContrib || 1;
+
+      return {
+        scores: scores.map(s => Math.min(Math.round((s / maxPossible) * 100), 99)),
+        ratios: {
+          sound: sContrib / totalContrib,
+          touch: tContrib / totalContrib,
+          light: lContrib / totalContrib
+        }
+      };
+    }
+
+    function getRanked(scores) {
+      return scores
+        .map((pct, i) => ({ idx: i, pct }))
+        .sort((a, b) => b.pct - a.pct);
+    }
+
+    // ===== RENDER =====
+    function render() {
+      if (!recipes || recipes.length === 0) return;
+
+      const sv = soundSel ? soundSel.value : '';
+      const tv = touchSel ? touchSel.value : '';
+      const lv = lightSel ? lightSel.value : '';
+
+      const { scores, ratios } = computeScores(sv, tv, lv);
+      const ranked = getRanked(scores);
+      const top = recipes[ranked[0].idx];
+      const topPct = ranked[0].pct;
+      currentRecipe = top;
+
+      animateWaveform(sv);
+      waveformBars.forEach(bar => bar.style.background = top.colors[0]);
+
+      document.getElementById('ratio-sound').style.width = (ratios.sound * 100) + '%';
+      document.getElementById('ratio-sound').style.background = top.colors[0];
+      document.getElementById('ratio-touch').style.width = (ratios.touch * 100) + '%';
+      document.getElementById('ratio-touch').style.background = top.colors[1] || top.colors[0];
+      document.getElementById('ratio-light').style.width = (ratios.light * 100) + '%';
+      document.getElementById('ratio-light').style.background = top.colors[2] || top.colors[0];
+
+      ambientEl.style.setProperty('--ambient-1', top.colors[0]);
+      ambientEl.style.setProperty('--ambient-2', top.colors[2] || top.colors[1]);
+
+      display.classList.add('fading');
+      setTimeout(() => {
+        document.getElementById('match-pct').textContent = topPct + '%';
+
+        document.getElementById('recipe-category').textContent = top.category;
+        document.getElementById('recipe-name').textContent = top.name;
+        document.getElementById('recipe-name-en').textContent = top.nameEn;
+        document.getElementById('recipe-desc').textContent = top.desc;
+
+        const paletteEl = document.getElementById('palette');
+        paletteEl.innerHTML = '';
+        top.colors.forEach(c => {
+          const sw = document.createElement('div');
+          sw.className = 'palette-swatch';
+          sw.style.background = c;
+          sw.title = c;
+          paletteEl.appendChild(sw);
+        });
+
+        const tagsEl = document.getElementById('tone-tags');
+        tagsEl.innerHTML = '';
+        top.tones.forEach(t => {
+          const tag = document.createElement('span');
+          tag.className = 'tone-tag';
+          tag.textContent = t;
+          tagsEl.appendChild(tag);
+        });
+
+        const albumsEl = document.getElementById('albums-list');
+        albumsEl.innerHTML = '';
+        top.albums.forEach(a => {
+          const item = document.createElement('div');
+          item.className = 'album-item';
+          item.style.cursor = 'pointer';
+          item.title = a;
+          item.innerHTML = `<div class="album-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">♪ ${a}</div>`;
+          item.addEventListener('click', () => {
+            const el = item.querySelector('.album-name');
+            el.style.whiteSpace = el.style.whiteSpace === 'normal' ? 'nowrap' : 'normal';
+            el.style.overflow = el.style.overflow === 'visible' ? 'hidden' : 'visible';
+          });
+          albumsEl.appendChild(item);
+        });
+
+        const tracksEl = document.getElementById('tracks-list');
+        tracksEl.innerHTML = '';
+        // 先显示配方参考曲目
+        top.tracks.forEach(t => {
+          const item = document.createElement('div');
+          item.className = 'track-item';
+          item.title = t;
+          item.style.opacity = '0.5';
+          item.innerHTML = `<span class="track-icon">📖</span> <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;font-size:.75rem;color:var(--text-muted);">${t}</span>`;
+          tracksEl.appendChild(item);
+        });
+        // 再加载可播放的本地音乐
+        const params2 = new URLSearchParams();
+        document.querySelectorAll('.mixer-dim-select').forEach(sel => params2.set(sel.dataset.dim, sel.value));
+        document.querySelectorAll('.mixer-dim-slider').forEach(slider => params2.set(slider.dataset.dim, slider.value));
+        fetch('/api/music/match?' + params2.toString())
+          .then(r => r.json())
+          .then(mdata => {
+            if (mdata.success && mdata.data && mdata.data.length > 0) {
+              // 添加分隔线
+              const sep = document.createElement('div');
+              sep.style.cssText = 'padding:6px 0;font-size:.65rem;color:var(--accent-gold);border-top:1px solid var(--border-subtle);margin-top:4px;';
+              sep.textContent = '🎧 可播放';
+              tracksEl.appendChild(sep);
+              mdata.data.forEach(tr => {
+                const item = document.createElement('div');
+                item.className = 'track-item';
+                item.style.cssText = 'cursor:pointer;padding:6px 8px;border-radius:8px;transition:background .2s;';
+                item.innerHTML = `<span class="track-icon">▶</span> <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;">${tr.title}</span>`;
+                item.addEventListener('mouseenter', () => item.style.background = 'var(--glass-bg)');
+                item.addEventListener('mouseleave', () => item.style.background = 'transparent');
+                item.addEventListener('click', () => {
+                  if (currentMusicId === tr.id && musicPlaying) {
+                    bgAudio.pause();
+                    musicPlaying = false;
+                    item.querySelector('.track-icon').textContent = '▶';
+                  } else {
+                    bgAudio.src = '/api/music/stream/' + tr.id;
+                    bgAudio.volume = (document.getElementById('music-volume')?.value || 30) / 100;
+                    bgAudio.play();
+                    musicPlaying = true;
+                    currentMusicId = tr.id;
+                    // 更新所有图标
+                    tracksEl.querySelectorAll('.track-icon').forEach(ic => ic.textContent = '▶');
+                    item.querySelector('.track-icon').textContent = '⏸';
+                    // 更新浮动按钮
+                    const fb = document.getElementById('floating-music-btn');
+                    if (fb) fb.textContent = '⏸';
+                    const ft = document.getElementById('floating-music-title');
+                    if (ft) ft.textContent = tr.title;
+                  }
+                });
+                tracksEl.appendChild(item);
+              });
+            }
+          }).catch(() => {});
+
+        const runnersEl = document.getElementById('runners');
+        runnersEl.innerHTML = '';
+        ranked.slice(1, 4).forEach(r => {
+          const rec = recipes[r.idx];
+          const card = document.createElement('div');
+          card.className = 'runner-card';
+          card.innerHTML = `
+            <div class="runner-name">${rec.name}</div>
+            <div class="runner-category">${rec.category}</div>
+            <div class="runner-pct">${r.pct}%</div>
+          `;
+          runnersEl.appendChild(card);
+        });
+
+        display.classList.remove('fading');
+      }, 350);
+    }
+
+    // ===== MUSIC PLAYER =====
+    const bgAudio = new Audio();
+    bgAudio.loop = true;
+    let musicPlaying = false;
+    let currentMusicId = null;
+    let musicMatchTimer = null;
+
+    function fetchAndPlayMusic() {
+      if (!mixerLoaded) return;
+      // 收集当前参数
+      const params = new URLSearchParams();
+      document.querySelectorAll('.mixer-dim-select').forEach(sel => {
+        params.set(sel.dataset.dim, sel.value);
+      });
+      document.querySelectorAll('.mixer-dim-slider').forEach(slider => {
+        params.set(slider.dataset.dim, slider.value);
+      });
+      const emotionTags = [];
+      document.querySelectorAll('.mixer-tag.selected').forEach(tag => {
+        emotionTags.push(tag.dataset.value);
+      });
+      if (emotionTags.length) params.set('emotion', emotionTags.join(','));
+
+      fetch('/api/music/match?' + params.toString())
+        .then(r => r.json())
+        .then(data => {
+          if (!data.success || !data.data || data.data.length === 0) {
+            document.getElementById('music-player').style.display = 'none';
+            return;
+          }
+          const track = data.data[0];
+          if (track.id === currentMusicId) return; // 同一首不切换
+          currentMusicId = track.id;
+
+          const player = document.getElementById('music-player');
+          player.style.display = 'block';
+          document.getElementById('music-title').textContent = track.title;
+          document.getElementById('music-tag').textContent = Object.keys(data.matchedTags || {}).slice(0, 3).join(' · ') || '匹配中';
+
+          const vol = data.settings?.volume || 30;
+          document.getElementById('music-volume').value = vol;
+          bgAudio.volume = vol / 100;
+
+          // 淡入切换
+          const fadeDur = data.settings?.fadeDuration || 2000;
+          if (data.settings?.autoPlay) {
+            bgAudio.src = '/api/music/stream/' + track.id;
+            bgAudio.volume = 0;
+            bgAudio.play().catch(() => {});
+            musicPlaying = true;
+            document.getElementById('music-play-btn').textContent = '⏸';
+            // 淡入
+            const step = vol / 100 / (fadeDur / 50);
+            const fadein = setInterval(() => {
+              bgAudio.volume = Math.min(bgAudio.volume + step, vol / 100);
+              if (bgAudio.volume >= vol / 100) clearInterval(fadein);
+            }, 50);
+          }
+        })
+        .catch(() => {});
+    }
+
+    // 播放/暂停按钮
+    document.getElementById('music-play-btn').addEventListener('click', () => {
+      if (musicPlaying) {
+        bgAudio.pause();
+        musicPlaying = false;
+        document.getElementById('music-play-btn').textContent = '▶';
+      } else {
+        bgAudio.play().catch(() => {});
+        musicPlaying = true;
+        document.getElementById('music-play-btn').textContent = '⏸';
+      }
+    });
+
+    // 音量控制
+    document.getElementById('music-volume').addEventListener('input', (e) => {
+      bgAudio.volume = e.target.value / 100;
+    });
+
+    // 在 render 中触发音乐匹配（防抖）
+    const origRender = render;
+    // 不重写render，在mixer控件事件中触发
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.mixer-tag')) {
+        clearTimeout(musicMatchTimer);
+        musicMatchTimer = setTimeout(fetchAndPlayMusic, 800);
+      }
+    });
+    document.addEventListener('change', (e) => {
+      if (e.target.closest('.mixer-dim-select')) {
+        clearTimeout(musicMatchTimer);
+        musicMatchTimer = setTimeout(fetchAndPlayMusic, 500);
+      }
+    });
+    document.addEventListener('input', (e) => {
+      if (e.target.closest('.mixer-dim-slider')) {
+        clearTimeout(musicMatchTimer);
+        musicMatchTimer = setTimeout(fetchAndPlayMusic, 1500);
+      }
+    });
+
+    // 初始加载
+    setTimeout(fetchAndPlayMusic, 2000);
+
+    // ===== RENDER AI PROJECTS =====
+    function renderAIProjects() {
+      const container = document.getElementById('ai-projects');
+      container.innerHTML = '';
+      
+      if (!AI_Projects || AI_Projects.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">加载中...</p>';
+        return;
+      }
+      
+      AI_Projects.forEach(project => {
+        const statusClass = `status-${project.status}`;
+        const statusText = project.status === 'active' ? '运行中' : 
+                           project.status === 'beta' ? 'Beta 测试' : '概念阶段';
+        
+        const card = document.createElement('div');
+        card.className = 'project-card';
+        card.innerHTML = `
+          <div class="project-header">
+            <div class="project-icon">${project.icon}</div>
+            <span class="project-status ${statusClass}">${statusText}</span>
+          </div>
+          <h3 class="project-name">${project.name}</h3>
+          <p class="project-desc">${project.desc}</p>
+          <div class="project-features">
+            ${project.features.map(f => `<span class="feature-tag">${f}</span>`).join('')}
+          </div>
+          <div class="project-actions">
+            ${project.actions.map(action => `
+              <button class="project-button ${action.type === 'primary' ? 'project-primary' : 'project-secondary'}">
+                ${action.label}
+              </button>
+            `).join('')}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // ===== ESTIMATE FLOW =====
+    let EstDevices = {}; // { category: [{id, name, code, icon}] }
+    let EstSelection = { category: '', deviceId: '', deviceName: '', warranty: 'warranty', storage: '', grade: '' };
+    const estSteps = ['品类', '机型', '容量', '成色', '结果'];
+    const estCondInfo = {
+      S: { name: '高保充新', desc: '全新未使用或激活后几乎未使用，无任何痕迹' },
+      A: { name: '靓机', desc: '轻微使用痕迹，屏幕/外壳完好，功能正常' },
+      B: { name: '小花', desc: '正常使用痕迹，轻微划痕，无明显磕碰' },
+      C: { name: '大花', desc: '明显使用痕迹，划痕较多或有小磕碰' },
+      D: { name: '外爆', desc: '外壳严重磨损/磕碰/掉漆，屏幕可能有裂痕' },
+      E: { name: '内爆可测', desc: '内部损坏但可检测，如主板问题、无法开机等' },
+    };
+
+    async function initEstimate() {
+      estRenderProgress(0);
+      try {
+        const res = await fetch(`${API_BASE}/api/devices`);
+        const result = await res.json();
+        if (result.success) EstDevices = result.data;
+      } catch (e) { console.error(e); }
+      estRenderCategories();
+    }
+
+    // ===== SALES SECTION =====
+    function switchPhoneTab(tab) {
+      document.querySelectorAll('.phone-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.phone-tab-content').forEach(c => c.classList.remove('active'));
+      
+      const targetTab = document.querySelector(`.phone-tab[data-tab="${tab}"]`);
+      const targetContent = document.getElementById(`phone-${tab}-content`);
+      
+      if (targetTab) targetTab.classList.add('active');
+      if (targetContent) targetContent.classList.add('active');
+      
+      if (tab === 'sales') {
+        loadSalesDevices();
+      }
+    }
+
+
+
+    // 全局存储销售数据（用于系列筛选和详情展示）
+    let salesDataGlobal = {};
+
+    async function loadSalesDevices() {
+      const icons = { 
+        iPhone: '📱', 
+        iPad: '📟', 
+        MacBook: '💻', 
+        Mac: '🖥️',
+        AirPods: '🎧', 
+        'Apple Watch': '⌚' 
+      };
+      
+      try {
+        const res = await fetch(`${API_BASE}/api/phones/list/with-pricing`);
+        const result = await res.json();
+        
+        if (result.success) {
+          salesDataGlobal = result.data;
+          
+          // 填充系列筛选
+          const seriesFilter = document.getElementById('filter-series');
+          if (seriesFilter) {
+            const seriesList = Object.keys(result.data);
+            seriesFilter.innerHTML = '<option value="">全部系列</option>' + 
+              seriesList.map(s => `<option value="${s}">${s}</option>`).join('');
+          }
+          
+          // 填充容量筛选（从定价数据收集所有容量）
+          populateStorageFilter(result.data);
+          
+          // 填充颜色筛选
+          const colorSet = new Set();
+          for (const devices of Object.values(result.data)) {
+            devices.forEach(d => { if (d.color) colorSet.add(d.color); });
+          }
+          const colorFilter = document.getElementById('filter-color');
+          if (colorFilter && colorSet.size > 0) {
+            colorFilter.innerHTML = '<option value="">全部颜色</option>' +
+              Array.from(colorSet).sort().map(c => `<option value="${c}">${c}</option>`).join('');
+          }
+          
+          // 绑定筛选事件
+          bindFilterEvents();
+          
+          // 渲染卡片
+          renderFilteredCards();
+        }
+      } catch (e) {
+        console.error('加载售卖设备失败:', e);
+      }
+    }
+
+    // 从后端获取所有可用容量
+    async function populateStorageFilter(data) {
+      const storageSet = new Set();
+      for (const [series, devices] of Object.entries(data)) {
+        for (const d of devices) {
+          if (d.storage_options) {
+            try {
+              const opts = typeof d.storage_options === 'string' ? JSON.parse(d.storage_options) : d.storage_options;
+              opts.forEach(s => storageSet.add(s));
+            } catch(e) {}
+          }
+        }
+      }
+      const storageFilter = document.getElementById('filter-storage');
+      if (storageFilter && storageSet.size > 0) {
+        const sorted = Array.from(storageSet).sort();
+        storageFilter.innerHTML = '<option value="">全部容量</option>' + 
+          sorted.map(s => `<option value="${s}">${s}</option>`).join('');
+      }
+    }
+
+    function bindFilterEvents() {
+      ['filter-series', 'filter-stock', 'filter-storage', 'filter-grade', 'filter-model', 'filter-color'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', onFilterChange);
+      });
+      const budget = document.getElementById('filter-budget');
+      if (budget) budget.addEventListener('input', debounce(onFilterChange, 400));
+    }
+
+    let _filterDebounceTimer;
+    function debounce(fn, delay) {
+      return function(...args) {
+        clearTimeout(_filterDebounceTimer);
+        _filterDebounceTimer = setTimeout(() => fn.apply(this, args), delay);
+      };
+    }
+
+    function onFilterChange() {
+      renderFilteredCards();
+      updateModelDropdown();
+      scrollToSelectedModel();
+    }
+
+    function scrollToSelectedModel() {
+      const modelVal = document.getElementById('filter-model')?.value;
+      if (!modelVal) return;
+      const card = document.querySelector(`.sales-card[data-id="${modelVal}"]`);
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // 高亮动画
+        card.style.transition = 'box-shadow 0.4s, transform 0.4s';
+        card.style.boxShadow = '0 0 20px rgba(196,162,101,0.5)';
+        card.style.transform = 'scale(1.03)';
+        setTimeout(() => {
+          card.style.boxShadow = '';
+          card.style.transform = '';
+        }, 2000);
+      }
+    }
+
+    function updateModelDropdown() {
+      const seriesVal = document.getElementById('filter-series').value;
+      const modelSelect = document.getElementById('filter-model');
+      if (!modelSelect) return;
+      if (seriesVal && salesDataGlobal[seriesVal] && salesDataGlobal[seriesVal].length > 1) {
+        modelSelect.innerHTML = '<option value="">全部型号</option>' +
+          salesDataGlobal[seriesVal].map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+        modelSelect.style.display = '';
+      } else {
+        modelSelect.innerHTML = '<option value="">全部型号</option>';
+        modelSelect.style.display = 'none';
+      }
+    }
+
+    function getFilteredDevices() {
+      const seriesVal = document.getElementById('filter-series')?.value || '';
+      const stockVal = document.getElementById('filter-stock')?.value;
+      const storageVal = document.getElementById('filter-storage')?.value || '';
+      const gradeVal = document.getElementById('filter-grade')?.value || '';
+      const budgetVal = parseFloat(document.getElementById('filter-budget')?.value) || 0;
+      const modelVal = document.getElementById('filter-model')?.value || '';
+      const colorVal = document.getElementById('filter-color')?.value || '';
+      
+      let allDevices = [];
+      for (const [series, devices] of Object.entries(salesDataGlobal)) {
+        devices.forEach(d => allDevices.push({ ...d, series }));
+      }
+      
+      // 系列筛选
+      if (seriesVal) {
+        allDevices = allDevices.filter(d => d.series === seriesVal);
+      }
+      
+      // 库存筛选
+      if (stockVal !== undefined && stockVal !== '') {
+        const wantStock = stockVal === '1';
+        allDevices = allDevices.filter(d => d.in_stock === wantStock);
+      }
+      
+      // 机型筛选
+      if (modelVal) {
+        allDevices = allDevices.filter(d => d.id === modelVal);
+      }
+      
+      // 容量筛选
+      if (storageVal) {
+        allDevices = allDevices.filter(d => {
+          try {
+            const opts = typeof d.storage_options === 'string' ? JSON.parse(d.storage_options) : (d.storage_options || []);
+            return opts.includes(storageVal);
+          } catch(e) { return true; }
+        });
+      }
+      
+      // 预算筛选
+      if (budgetVal > 0) {
+        allDevices = allDevices.filter(d => d.min_price && d.min_price <= budgetVal);
+      }
+      
+      // 颜色筛选
+      if (colorVal) {
+        allDevices = allDevices.filter(d => d.color === colorVal);
+      }
+      
+      // 成色筛选（需要后端支持，这里按价格区间近似）
+      // 成色筛选仅影响详情展示
+      
+      return allDevices;
+    }
+
+    function renderFilteredCards() {
+      const icons = { iPhone: '📱', iPad: '📟', MacBook: '💻', Mac: '🖥️', AirPods: '🎧', 'Apple Watch': '⌚' };
+      const devices = getFilteredDevices();
+      
+      const iPhoneGrid = document.getElementById('sales-iphone-grid');
+      const otherGrid = document.getElementById('sales-other-grid');
+      const iPhoneSection = document.getElementById('sales-iphone-section');
+      const otherSection = document.getElementById('sales-other-section');
+      
+      let iPhoneHtml = '';
+      let otherHtml = '';
+      
+      devices.forEach(d => {
+        const priceRange = d.min_price && d.max_price ? 
+          (d.min_price === d.max_price ? `¥${d.min_price}` : `¥${d.min_price} - ¥${d.max_price}`) : 
+          '价格待定';
+        const isIPhone = d.series === 'iPhone';
+        
+        const cardHtml = `
+          <div class="sales-card ${isIPhone ? 'featured' : ''}" data-series="${d.series}" data-id="${d.id}" onclick="openSalesDetail('${d.id}', '${d.series}')">
+            <div class="sales-card-image">
+              ${d.image_path ? `<img src="${d.image_path}" alt="${d.name}">` : icons[d.series] || '📱'}
+            </div>
+            <div class="sales-card-content">
+              <div class="sales-card-name">${d.name}</div>
+              <div class="sales-card-series">${d.series}</div>
+              <div class="sales-card-price">
+                <span class="price-label">售价</span> ${priceRange}
+              </div>
+              <span class="sales-card-stock ${d.in_stock ? 'in-stock' : 'out-of-stock'}">
+                ${d.in_stock ? '有货' : '缺货'}
+              </span>
+            </div>
+          </div>
+        `;
+        
+        if (isIPhone) {
+          iPhoneHtml += cardHtml;
+        } else {
+          otherHtml += cardHtml;
+        }
+      });
+      
+      if (iPhoneGrid) iPhoneGrid.innerHTML = iPhoneHtml;
+      if (otherGrid) otherGrid.innerHTML = otherHtml;
+      if (iPhoneSection) iPhoneSection.style.display = iPhoneHtml ? 'block' : 'none';
+      if (otherSection) otherSection.style.display = otherHtml ? 'block' : 'none';
+    }
+
+    // 系列筛选功能（兼容旧调用）
+    function filterSalesBySeries(selectedSeries) {
+      const seriesFilter = document.getElementById('filter-series');
+      if (seriesFilter) seriesFilter.value = selectedSeries;
+      renderFilteredCards();
+      updateModelDropdown();
+    }
+
+    // 打开产品详情弹窗
+    async function openSalesDetail(deviceId, series) {
+      const icons = { iPhone: '📱', iPad: '📟', MacBook: '💻', Mac: '🖥️', AirPods: '🎧', 'Apple Watch': '⌚' };
+      
+      let device = null;
+      for (const [s, devices] of Object.entries(salesDataGlobal)) {
+        const found = devices.find(d => d.id === deviceId);
+        if (found) { device = { ...found, series: s }; break; }
+      }
+      if (!device) { showToast('未找到设备信息', 'error'); return; }
+      
+      const priceRange = device.min_price && device.max_price ?
+        (device.min_price === device.max_price ? `¥${device.min_price}` : `¥${device.min_price} - ¥${device.max_price}`) : '价格待定';
+      
+      // 获取多图片
+      let images = [];
+      try {
+        const imgRes = await fetch(`${API_BASE}/api/phones/${deviceId}/images`);
+        const imgResult = await imgRes.json();
+        if (imgResult.success) images = imgResult.data;
+      } catch(e) {}
+      
+      // 获取定价详情
+      let pricing = [];
+      try {
+        const priceRes = await fetch(`${API_BASE}/api/phones/${deviceId}/pricing`);
+        const priceResult = await priceRes.json();
+        if (priceResult.success) pricing = priceResult.data;
+      } catch(e) {}
+      
+      // 构建图片轮播
+      let carouselHtml = '';
+      if (images.length > 0) {
+        carouselHtml = `
+          <div style="position:relative;width:100%;height:280px;background:var(--bg-dark);border-radius:12px;overflow:hidden;margin-bottom:20px;cursor:pointer;" onclick="openLightbox(0)">
+            <img id="detail-carousel-img" src="${images[0].image_path}" style="width:100%;height:100%;object-fit:contain;" alt="">
+            <div style="position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:6px;">
+              ${images.map((img, i) => `<span class="carousel-dot" data-idx="${i}" style="width:10px;height:10px;border-radius:50%;background:${i===0?'var(--accent-gold)':'rgba(255,255,255,0.3)'};cursor:pointer;transition:all 0.3s;" onclick="event.stopPropagation();carouselTo(${i})"></span>`).join('')}
+            </div>
+            ${images.length > 1 ? `
+              <button onclick="event.stopPropagation();carouselPrev()" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.2rem;display:flex;align-items:center;justify-content:center;transition:all 0.3s;" onmouseover="this.style.background='var(--accent-gold)';this.style.borderColor='var(--accent-gold)'" onmouseout="this.style.background='rgba(0,0,0,0.6)';this.style.borderColor='rgba(255,255,255,0.2)'">‹</button>
+              <button onclick="event.stopPropagation();carouselNext()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.2rem;display:flex;align-items:center;justify-content:center;transition:all 0.3s;" onmouseover="this.style.background='var(--accent-gold)';this.style.borderColor='var(--accent-gold)'" onmouseout="this.style.background='rgba(0,0,0,0.6)';this.style.borderColor='rgba(255,255,255,0.2)'">›</button>
+            ` : ''}
+          </div>
+        `;
+      } else {
+        carouselHtml = `
+          <div style="width:100%;height:200px;background:var(--bg-dark);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:4rem;margin-bottom:20px;">
+            ${icons[device.series] || '📱'}
+          </div>
+        `;
+      }
+      
+      // 构建变体选择器（电商风格）
+      const storages = [...new Set(pricing.map(p => p.storage))];
+      const grades = [...new Set(pricing.map(p => p.condition_grade))];
+      window._detailPricing = pricing;
+      window._detailSelectedStorage = storages[0] || '';
+      window._detailSelectedGrade = grades.includes('S') ? 'S' : (grades[0] || '');
+
+      window._detailGetPrice = function() {
+        const p = window._detailPricing.find(x => x.storage === window._detailSelectedStorage && x.condition_grade === window._detailSelectedGrade);
+        return p ? '¥' + p.sell_price.toLocaleString() : '暂无报价';
+      };
+
+      window._detailSelectStorage = function(val) {
+        window._detailSelectedStorage = val;
+        document.querySelectorAll('#detail-storage-opts .detail-variant-btn').forEach(b => {
+          const isActive = b.dataset.val === val;
+          b.style.borderColor = isActive ? 'var(--accent-gold)' : 'var(--border-subtle)';
+          b.style.color = isActive ? 'var(--accent-gold)' : 'var(--text-secondary)';
+          b.style.background = isActive ? 'rgba(196,162,101,0.1)' : 'transparent';
+        });
+        const priceEl = document.getElementById('detail-price');
+        if (priceEl) priceEl.textContent = window._detailGetPrice();
+      };
+
+      window._detailSelectGrade = function(val) {
+        window._detailSelectedGrade = val;
+        document.querySelectorAll('#detail-grade-opts .detail-variant-btn').forEach(b => {
+          const isActive = b.dataset.val === val;
+          b.style.borderColor = isActive ? 'var(--accent-gold)' : 'var(--border-subtle)';
+          b.style.color = isActive ? 'var(--accent-gold)' : 'var(--text-secondary)';
+          b.style.background = isActive ? 'rgba(196,162,101,0.1)' : 'transparent';
+        });
+        const priceEl = document.getElementById('detail-price');
+        if (priceEl) priceEl.textContent = window._detailGetPrice();
+      };
+
+      const gradeColors = {S:'#2ecc71',A:'#3498db',B:'#f39c12',C:'#e67e22',D:'#e74c3c'};
+      const gradeLabels = {S:'S级 99新',A:'A级 95新',B:'B级 9新',C:'C级 85新',D:'D级 8新'};
+      let variantHtml = '';
+      if (pricing.length > 0) {
+        const selS = window._detailSelectedStorage;
+        const selG = window._detailSelectedGrade;
+        variantHtml = `
+          <div id="detail-price" style="font-family:'Ibarra Real Nova',serif;font-size:2rem;font-weight:700;color:var(--accent-gold);margin:12px 0 20px;">${window._detailGetPrice()}</div>
+          ${storages.length > 0 ? `
+            <div style="margin-bottom:16px;">
+              <div style="font-size:.85rem;color:var(--text-secondary);margin-bottom:8px;">容量</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;" id="detail-storage-opts">
+                ${storages.map(s => `<div class="detail-variant-btn" data-val="${s}" onclick="window._detailSelectStorage('${s}')" style="padding:8px 16px;border:1px solid ${s===selS?'var(--accent-gold)':'var(--border-subtle)'};border-radius:8px;font-size:.85rem;cursor:pointer;transition:all 0.2s;color:${s===selS?'var(--accent-gold)':'var(--text-secondary)'};background:${s===selS?'rgba(196,162,101,0.1)':'transparent'};">${s}</div>`).join('')}
+              </div>
+            </div>
+          ` : ''}
+          ${grades.length > 0 ? `
+            <div style="margin-bottom:16px;">
+              <div style="font-size:.85rem;color:var(--text-secondary);margin-bottom:8px;">成色</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;" id="detail-grade-opts">
+                ${grades.map(g => `<div class="detail-variant-btn" data-val="${g}" onclick="window._detailSelectGrade('${g}')" style="padding:8px 16px;border:1px solid ${g===selG?'var(--accent-gold)':'var(--border-subtle)'};border-radius:8px;font-size:.85rem;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:6px;color:${g===selG?'var(--accent-gold)':'var(--text-secondary)'};background:${g===selG?'rgba(196,162,101,0.1)':'transparent'};"><span style="display:inline-block;width:18px;height:18px;border-radius:4px;text-align:center;line-height:18px;font-size:.7rem;font-weight:700;color:#fff;background:${gradeColors[g]||'#666'};">${g}</span>${gradeLabels[g]||g}</div>`).join('')}
+              </div>
+            </div>
+          ` : ''}
+        `;
+      }
+      
+      // 创建弹窗
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay visible';
+      overlay.id = 'sales-detail-overlay';
+      overlay.style.zIndex = '3000';
+      overlay.innerHTML = `
+        <div class="modal-content" style="max-width:550px;max-height:85vh;overflow-y:auto;">
+          <button class="modal-close" onclick="document.getElementById('sales-detail-overlay').remove()">×</button>
+          <div class="modal-header" style="text-align:left;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+              <span style="font-size:.8rem;color:var(--accent-gold);background:rgba(196,162,101,0.1);padding:3px 10px;border-radius:10px;">${device.series}</span>
+              <span class="sales-card-stock ${device.in_stock ? 'in-stock' : 'out-of-stock'}" style="font-size:.75rem;">${device.in_stock ? '有货' : '缺货'}</span>
+            </div>
+            <h3 class="modal-title" style="text-align:left;font-size:1.4rem;">${device.name}</h3>
+            <div style="font-family:'Ibarra Real Nova',serif;font-size:1.3rem;font-weight:700;color:var(--accent-gold);margin-top:4px;">${priceRange}</div>
+          </div>
+          ${carouselHtml}
+          ${variantHtml ? variantHtml : ''}
+          <div style="margin-top:24px;text-align:center;">
+            <a href="tel:15279139669" class="est-call-btn" style="display:inline-block;padding:14px 40px;background:linear-gradient(135deg,var(--accent-gold),var(--accent-warm));color:var(--bg-dark);border-radius:12px;font-weight:600;text-decoration:none;font-size:1rem;">📞 联系购买</a>
+          </div>
+        </div>
+      `;
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+      document.body.appendChild(overlay);
+      
+      window._carouselImages = images;
+      window._carouselIdx = 0;
+    }
+
+    // 轮播控制函数
+    function carouselTo(idx) {
+      const imgs = window._carouselImages;
+      if (!imgs || idx < 0 || idx >= imgs.length) return;
+      window._carouselIdx = idx;
+      const img = document.getElementById('detail-carousel-img');
+      if (img) img.src = imgs[idx].image_path;
+      document.querySelectorAll('.carousel-dot').forEach((d, i) => {
+        d.style.background = i === idx ? 'var(--accent-gold)' : 'rgba(255,255,255,0.3)';
+        d.style.transform = i === idx ? 'scale(1.3)' : 'scale(1)';
+      });
+    }
+    function carouselPrev() {
+      const imgs = window._carouselImages;
+      if (!imgs) return;
+      carouselTo((window._carouselIdx - 1 + imgs.length) % imgs.length);
+    }
+    function carouselNext() {
+      const imgs = window._carouselImages;
+      if (!imgs) return;
+      carouselTo((window._carouselIdx + 1) % imgs.length);
+    }
+
+    // 全屏灯箱
+    function openLightbox(startIdx) {
+      const imgs = window._carouselImages;
+      if (!imgs || imgs.length === 0) return;
+      const idx = startIdx || 0;
+      window._carouselIdx = idx;
+
+      const lb = document.createElement('div');
+      lb.id = 'image-lightbox';
+      lb.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:zoom-out;';
+      lb.innerHTML = `
+        <button onclick="document.getElementById('image-lightbox').remove()" style="position:absolute;top:20px;right:20px;background:rgba(231,76,60,0.3);border:2px solid rgba(231,76,60,0.6);color:#e74c3c;width:44px;height:44px;border-radius:50%;cursor:pointer;font-size:1.5rem;font-weight:700;display:flex;align-items:center;justify-content:center;z-index:2;" onmouseover="this.style.background='#e74c3c';this.style.color='#fff'" onmouseout="this.style.background='rgba(231,76,60,0.3)';this.style.color='#e74c3c'">×</button>
+        <img id="lightbox-img" src="${imgs[idx].image_path}" style="max-width:90%;max-height:90%;object-fit:contain;border-radius:8px;">
+        ${imgs.length > 1 ? `
+          <button onclick="event.stopPropagation();lbNav(-1)" style="position:absolute;left:20px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.3);color:#fff;width:48px;height:48px;border-radius:50%;cursor:pointer;font-size:1.5rem;">‹</button>
+          <button onclick="event.stopPropagation();lbNav(1)" style="position:absolute;right:20px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.3);color:#fff;width:48px;height:48px;border-radius:50%;cursor:pointer;font-size:1.5rem;">›</button>
+          <div style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,0.6);font-size:.9rem;">${idx + 1} / ${imgs.length}</div>
+        ` : ''}
+      `;
+      lb.addEventListener('click', (e) => { if (e.target === lb) lb.remove(); });
+      document.body.appendChild(lb);
+
+      // 键盘事件
+      const handler = (e) => {
+        if (e.key === 'Escape') { lb.remove(); document.removeEventListener('keydown', handler); }
+        if (e.key === 'ArrowLeft') lbNav(-1);
+        if (e.key === 'ArrowRight') lbNav(1);
+      };
+      document.addEventListener('keydown', handler);
+    }
+
+    function lbNav(dir) {
+      const imgs = window._carouselImages;
+      if (!imgs) return;
+      window._carouselIdx = (window._carouselIdx + dir + imgs.length) % imgs.length;
+      const img = document.getElementById('lightbox-img');
+      if (img) img.src = imgs[window._carouselIdx].image_path;
+      // 同步详情弹窗的轮播
+      carouselTo(window._carouselIdx);
+      // 更新灯箱计数
+      const countEl = document.querySelector('#image-lightbox div:last-child');
+      if (countEl && countEl.style.position === 'absolute') {
+        countEl.textContent = `${window._carouselIdx + 1} / ${imgs.length}`;
+      }
+    }
+
+    function estRenderProgress(step) {
+      const el = document.getElementById('est-progress');
+      if (!el) return;
+      el.innerHTML = estSteps.map((_, i) =>
+        `<div class="est-progress-dot ${i < step ? 'done' : i === step ? 'active' : ''}"></div>`
+      ).join('');
+    }
+
+    function estGoStep(n) {
+      document.querySelectorAll('.est-step').forEach(s => s.classList.remove('active'));
+      const target = document.querySelector(`.est-step[data-estep="${n}"]`);
+      if (target) target.classList.add('active');
+      estRenderProgress(n);
+    }
+
+    function estRenderCategories() {
+      const cats = Object.keys(EstDevices);
+      const icons = { iPhone: '📱', iPad: '📟', AirPods: '🎧', 'Apple Watch': '⌚', MacBook: '💻', Mac: '🖥️' };
+      const grid = document.getElementById('est-cat-grid');
+      if (!grid) return;
+      
+      const iPhone = cats.find(c => c === 'iPhone');
+      const others = cats.filter(c => c !== 'iPhone');
+      
+      let html = '';
+      
+      if (iPhone) {
+        html += `<div class="est-cat-card featured" onclick="estSelectCategory('${iPhone}')">
+          <div class="icon">${icons[iPhone] || '📱'}</div>
+          <div class="name">${iPhone}</div>
+          <div class="featured-tag">主推产品</div>
+        </div>`;
+      }
+      
+      if (others.length > 0) {
+        html += '<div class="est-cat-row">';
+        others.forEach(c => {
+          html += `<div class="est-cat-card" onclick="estSelectCategory('${c}')">
+            <div class="icon">${icons[c] || '📱'}</div>
+            <div class="name">${c}</div>
+          </div>`;
+        });
+        html += '</div>';
+      }
+      
+      grid.innerHTML = html;
+    }
+
+    function estSelectCategory(cat) {
+      EstSelection.category = cat;
+      const title = document.getElementById('est-step1-title');
+      if (title) title.textContent = `选择机型 · ${cat}`;
+      const devices = EstDevices[cat] || [];
+      const list = document.getElementById('est-device-list');
+      if (!list) return;
+      list.innerHTML = devices.map(d =>
+        `<div class="est-device-item" onclick="estSelectDevice('${d.id}','${d.name}')">
+          <span class="icon">${d.icon}</span>
+          <span class="name">${d.name}</span>
+          <span class="code">${d.code || ''}</span>
+          <span class="arrow">›</span>
+        </div>`
+      ).join('');
+      estGoStep(1);
+    }
+
+    async function estSelectDevice(id, name) {
+      EstSelection.deviceId = id;
+      EstSelection.deviceName = name;
+      const title = document.getElementById('est-step2-title');
+      if (title) title.textContent = name;
+      try {
+        const res = await fetch(`${API_BASE}/api/devices/${id}/storages`);
+        const result = await res.json();
+        if (result.success) {
+          EstSelection.storage = '';
+          const grid = document.getElementById('est-storage-grid');
+          if (grid) {
+            grid.innerHTML = result.data.map(s =>
+              `<div class="est-option-btn" onclick="estSelectStorage('${s}', this)">${s}</div>`
+            ).join('');
+          }
+        }
+      } catch (e) { console.error(e); }
+      estGoStep(2);
+    }
+
+    function estSelectStorage(s, el) {
+      EstSelection.storage = s;
+      document.querySelectorAll('#est-storage-grid .est-option-btn').forEach(b => b.classList.remove('selected'));
+      el.classList.add('selected');
+      setTimeout(() => { estRenderConditions(); estGoStep(3); }, 200);
+    }
+
+    function estSelectWarranty(w) {
+      EstSelection.warranty = w;
+      document.querySelectorAll('.est-warranty-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.w === w);
+      });
+      if (EstSelection.deviceId) {
+        fetch(`${API_BASE}/api/devices/${EstSelection.deviceId}/storages`)
+          .then(r => r.json())
+          .then(r => {
+            if (r.success) {
+              EstSelection.storage = '';
+              const grid = document.getElementById('est-storage-grid');
+              if (grid) grid.innerHTML = r.data.map(s =>
+                `<div class="est-option-btn" onclick="estSelectStorage('${s}', this)">${s}</div>`
+              ).join('');
+            }
+          });
+      }
+    }
+
+    function estRenderConditions() {
+      const grades = EstSelection.warranty === 'warranty'
+        ? ['S', 'A', 'B', 'C', 'D', 'E']
+        : ['A', 'B', 'C', 'D', 'E'];
+      const grid = document.getElementById('est-cond-grid');
+      if (!grid) return;
+      grid.innerHTML = grades.map(g => {
+        const info = estCondInfo[g];
+        return `<div class="est-cond-card" onclick="estSelectGrade('${g}', this)">
+          <div class="est-cond-header">
+            <span class="est-cond-grade grade-${g}">${g}</span>
+            <span class="est-cond-name">${info.name}</span>
+          </div>
+          <div class="est-cond-desc">${info.desc}</div>
+        </div>`;
+      }).join('');
+    }
+
+    async function estSelectGrade(g, el) {
+      EstSelection.grade = g;
+      document.querySelectorAll('.est-cond-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      try {
+        const params = new URLSearchParams({
+          device_id: EstSelection.deviceId,
+          warranty: EstSelection.warranty,
+          storage: EstSelection.storage,
+          grade: g
+        });
+        const res = await fetch(`${API_BASE}/api/prices/estimate?${params}`);
+        const result = await res.json();
+        if (result.success) estShowResult(result.data);
+      } catch (e) { console.error(e); }
+    }
+
+    function estShowResult(data) {
+      const devEl = document.getElementById('est-result-device');
+      if (devEl) devEl.textContent =
+        `${EstSelection.deviceName} ${EstSelection.storage} ${EstSelection.warranty === 'warranty' ? '在保' : '过保'}`;
+
+      const priceEl = document.getElementById('est-result-price');
+      const dateEl = document.getElementById('est-result-date');
+      if (data.price) {
+        if (priceEl) priceEl.textContent = data.price.toLocaleString();
+        if (dateEl) dateEl.textContent = `报价日期：${data.date}`;
+      } else {
+        if (priceEl) priceEl.textContent = '--';
+        if (dateEl) dateEl.textContent = data.message || '暂无报价';
+      }
+
+      const deductSection = document.getElementById('est-deduct-section');
+      const deductList = document.getElementById('est-deduct-list');
+      if (data.deductions && data.deductions.length > 0) {
+        if (deductSection) deductSection.style.display = 'block';
+        if (deductList) deductList.innerHTML = data.deductions.map(d =>
+          `<div class="est-deduct-item">
+            <span>${d.rule_name}<br><small style="color:var(--text-muted)">${d.description || ''}</small></span>
+            <span class="amount">${d.deduction_amount > 0 ? '-' : '+'}${Math.abs(d.deduction_amount)}</span>
+          </div>`
+        ).join('');
+      } else {
+        if (deductSection) deductSection.style.display = 'none';
+      }
+
+      estGoStep(4);
+    }
+
+    // ===== SECTION NAVIGATION =====
+    const sections = {
+      hero: document.getElementById('hero-section'),
+      lab: document.getElementById('lab-section'),
+      ai: document.getElementById('ai-section'),
+      phone: document.getElementById('phone-section'),
+      contact: document.getElementById('contact-section')
+    };
+
+    let isManualNavigation = false;
+    let navigationTimeout = null;
+
+    const sectionThemes = {
+      hero: { ambient1: '#444', ambient2: '#333', accent: '#C4A265' },
+      lab: { ambient1: '#C4A265', ambient2: '#8B7355', accent: '#C4A265' },
+      ai: { ambient1: '#00BCD4', ambient2: '#1A1A2E', accent: '#00BCD4' },
+      phone: { ambient1: '#8B7355', ambient2: '#4A3F2E', accent: '#8B7355' },
+      contact: { ambient1: '#666', ambient2: '#444', accent: '#C4A265' }
+    };
+
+    function updateAmbientBySection(sectionId) {
+      const theme = sectionThemes[sectionId];
+      if (theme) {
+        ambientEl.style.setProperty('--ambient-1', theme.ambient1);
+        ambientEl.style.setProperty('--ambient-2', theme.ambient2);
+        document.documentElement.style.setProperty('--accent-color', theme.accent);
+      }
+    }
+
+    function updateActiveNav(sectionId) {
+      navItems.forEach(item => {
+        item.classList.remove('active');
+        if (item.dataset.section === sectionId) {
+          item.classList.add('active');
+        }
+      });
+      
+      if (sectionId === 'lab') {
+        labMixerSection.classList.add('visible');
+      } else {
+        labMixerSection.classList.remove('visible');
+      }
+    }
+
+    function scrollToSection(sectionId) {
+      const section = sections[sectionId];
+      if (!section) return;
+      
+      isManualNavigation = true;
+      if (navigationTimeout) {
+        clearTimeout(navigationTimeout);
+      }
+      
+      updateActiveNav(sectionId);
+      updateAmbientBySection(sectionId);
+      
+      section.scrollIntoView({ behavior: 'smooth' });
+      
+      navigationTimeout = setTimeout(() => {
+        isManualNavigation = false;
+      }, 1500);
+      
+      if (sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+        mobileMenuToggle.classList.remove('open');
+      }
+    }
+
+    // ===== SCROLL OBSERVER =====
+    function createScrollObserver() {
+      const observerOptions = {
+        root: null,
+        rootMargin: '-20% 0px -20% 0px',
+        threshold: 0
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        if (isManualNavigation) return;
+        
+        const intersectingEntries = entries.filter(e => e.isIntersecting);
+        
+        if (intersectingEntries.length === 0) return;
+        
+        const sectionOrder = ['hero', 'lab', 'ai', 'phone', 'contact'];
+        let selectedSection = null;
+        let maxRatio = 0;
+        
+        intersectingEntries.forEach(entry => {
+          const sectionId = entry.target.id.replace('-section', '');
+          const ratio = entry.intersectionRatio;
+          
+          if (ratio > maxRatio || (ratio === maxRatio && sectionOrder.indexOf(sectionId) > sectionOrder.indexOf(selectedSection))) {
+            maxRatio = ratio;
+            selectedSection = sectionId;
+          }
+        });
+        
+        if (selectedSection) {
+          updateActiveNav(selectedSection);
+          updateAmbientBySection(selectedSection);
+        }
+      }, observerOptions);
+
+      Object.values(sections).forEach(section => {
+        observer.observe(section);
+      });
+    }
+
+    // ===== API FUNCTIONS =====
+    async function fetchData() {
+      try {
+        const [recipesRes, projectsRes, phonesRes, settingsRes] = await Promise.all([
+          fetch(`${API_BASE}/api/recipes`),
+          fetch(`${API_BASE}/api/projects`),
+          fetch(`${API_BASE}/api/phones`),
+          fetch(`${API_BASE}/api/settings/public`)
+        ]);
+
+        if (recipesRes.ok) {
+          const result = await recipesRes.json();
+          if (result.success && result.data) {
+            recipes = result.data;
+          }
+        }
+        if (projectsRes.ok) {
+          const result = await projectsRes.json();
+          if (result.success && result.data) {
+            AI_Projects = result.data;
+          }
+        }
+        if (phonesRes.ok) {
+          const result = await phonesRes.json();
+          if (result.success && result.data) {
+            // Estimate flow loads independently via initEstimate()
+          }
+        }
+        if (settingsRes.ok) {
+          const result = await settingsRes.json();
+          if (result.success && result.data) {
+            updateContactInfo(result.data);
+          }
+        }
+      } catch (error) {
+        console.log('Using fallback data (API not available)');
+        recipes = getFallbackRecipes();
+        AI_Projects = getFallbackProjects();
+        // Estimate flow has its own fallback
+      }
+
+      renderAIProjects();
+      initEstimate();
+      loadSalesDevices();
+    }
+
+    function updateContactInfo(settings) {
+      if (!settings) return;
+      
+      const avatarEl = document.getElementById('contact-avatar');
+      const nameEl = document.getElementById('contact-name');
+      const taglineEl = document.getElementById('contact-tagline');
+      const phoneEl = document.getElementById('est-phone-number');
+      const callLinkEl = document.getElementById('est-call-link');
+      const qrPlaceholder = document.getElementById('qr-placeholder');
+      
+      if (settings.contact_avatar && avatarEl) {
+        avatarEl.textContent = settings.contact_avatar;
+      }
+      if (settings.contact_name && nameEl) {
+        nameEl.textContent = settings.contact_name;
+      }
+      if (settings.contact_tagline && taglineEl) {
+        taglineEl.textContent = settings.contact_tagline;
+      }
+      if (settings.contact_phone) {
+        if (phoneEl) {
+          phoneEl.textContent = settings.contact_phone;
+        }
+        if (callLinkEl) {
+          callLinkEl.href = `tel:${settings.contact_phone}`;
+        }
+      }
+      if (settings.contact_wechat_qr && qrPlaceholder) {
+        qrPlaceholder.innerHTML = `<img src="${settings.contact_wechat_qr}" style="width:200px;height:200px;border-radius:8px;">`;
+      }
+
+      // 在联系页面直接显示二维码
+      const contactQrSection = document.getElementById('contact-qr-section');
+      const contactQrImage = document.getElementById('contact-qr-image');
+      if (settings.contact_wechat_qr && contactQrSection && contactQrImage) {
+        contactQrImage.innerHTML = `<img src="${settings.contact_wechat_qr}" style="width:100%;height:100%;object-fit:contain;">`;
+        contactQrSection.style.display = 'block';
+      }
+
+      // 更新联系信息显示
+      const phoneDisplay = document.getElementById('contact-phone-display');
+      const emailDisplay = document.getElementById('contact-email-display');
+      const wechatDisplay = document.getElementById('contact-wechat-display');
+      if (settings.contact_phone && phoneDisplay) phoneDisplay.textContent = settings.contact_phone;
+      if (settings.contact_email && emailDisplay) emailDisplay.textContent = settings.contact_email;
+      if (settings.contact_wechat && wechatDisplay) wechatDisplay.textContent = settings.contact_wechat;
+    }
+
+    async function fetchQuota() {
+      try {
+        const res = await fetch(`${API_BASE}/api/upload/quota`);
+        if (res.ok) {
+          const result = await res.json();
+          if (result.success && result.data) {
+            updateQuotaDisplay(result.data.used, result.data.quota);
+          }
+        }
+      } catch (error) {
+        updateQuotaDisplay(0, 10);
+      }
+    }
+
+    function updateQuotaDisplay(used, limit) {
+      quotaCount.textContent = `${used} / ${limit}`;
+      quotaProgress.style.width = `${(used / limit) * 100}%`;
+    }
+
+    async function uploadImage(file) {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      try {
+        const res = await fetch(`${API_BASE}/api/upload/single`, {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await res.json();
+        
+        if (res.ok && result.success) {
+          if (result.quota) {
+            updateQuotaDisplay(result.quota.used, result.quota.quota);
+          }
+          return { success: true, data: result.data };
+        } else {
+          return { success: false, error: result.error || '上传失败' };
+        }
+      } catch (error) {
+        return { success: false, error: '上传失败，请稍后重试' };
+      }
+    }
+
+    // ===== FALLBACK DATA =====
+    function getFallbackRecipes() {
+      return [
+        {
+          id: 'peninsula-tin', name: '半岛铁盒', nameEn: 'Peninsula Tin Box', category: '怀旧叙事',
+          colors: ['#C4A265','#8B7355','#D4A76A','#6B5B3E'],
+          tones: ['低对比度','高噪点','黄褐色暖调','16:9 宽画幅','叙事感'],
+          albums: ['周杰伦《八度空间》','早期华语流行乐磁带封面'],
+          tracks: ['《反方向的钟》','《爱在西元前》'],
+          desc: '阳光斜射进堆满杂物的旧书店，空气中的微尘在逆光中飞舞，时间仿佛在此刻停滞。'
+        },
+        {
+          id: 'ice-echo', name: '冰面下的回声', nameEn: 'Echo Beneath the Ice', category: '清冷疏离',
+          colors: ['#E8EDF2','#B0C4D8','#8FA5B8','#D3DCE6'],
+          tones: ['高调曝光','极低饱和度','冷灰蓝偏移','负空间留白','前景失焦'],
+          albums: ['Radiohead《OK Computer》','Bon Iver《For Emma, Forever Ago》'],
+          tracks: ['Everything In Its Right Place','Skinny Love'],
+          desc: '空旷的郊区停车场，一个人的背影正消失在过曝的白色尽头。呼出的雾气是画面中唯一的温度证据。'
+        },
+        {
+          id: 'neon-rust', name: '霓虹锈蚀', nameEn: 'Neon Corrosion', category: '赛博工业',
+          colors: ['#00BCD4','#FF6B35','#1A1A2E','#E94560'],
+          tones: ['高对比度硬光','青橙互补色','锐利几何阴影','色差噪点','2.39:1 超宽幅'],
+          albums: ['Nine Inch Nails《The Downward Spiral》','Perturbator《Dangerous Days》'],
+          tracks: ['Closer','Tears in Rain (Vangelis)'],
+          desc: '雨夜工业区的高架桥下，一盏故障霓虹灯以不规则频率闪烁青红光。积水中映出倒置的扭曲城市。'
+        },
+        {
+          id: 'birch-breath', name: '白桦呼吸', nameEn: 'Birch Breath', category: '北欧极简',
+          colors: ['#F5F0EB','#D4C5B5','#E8E0D8','#A89B8C'],
+          tones: ['极简构图','大面积负空间','自然灰调','米白基底','柔焦去锐化'],
+          albums: ['Sigur Rós《( )》','Ólafur Arnalds《Island Songs》'],
+          tracks: ['Svefn-g-englar','Near Light'],
+          desc: '一间只放置了一把温莎椅的全白房间，窗外是没有尽头的雪原。光线不像照射，更像水一样缓慢漫进室内。'
+        },
+        {
+          id: 'faded-postcard', name: '褪色明信片', nameEn: 'Faded Postcard', category: '怀旧叙事',
+          colors: ['#E8A87C','#D4956B','#C17B5A','#A0522D'],
+          tones: ['Kodak Gold 200','自然过曝','明显暗角','橙红暖偏移','胶片颗粒'],
+          albums: ['Fleetwood Mac《Rumours》','Lana Del Rey《Born to Die》'],
+          tracks: ['Dreams','Video Games'],
+          desc: '70年代加州太平洋海岸公路旁的汽车旅馆黄昏，阳光把一切都染成蜜糖色，远处的公路延伸到热浪蒸腾的地平线。'
+        },
+        {
+          id: 'tropical-gravity', name: '热带引力', nameEn: 'Tropical Gravity', category: '夏日多巴胺',
+          colors: ['#0047AB','#FF69B4','#FFE135','#00CED1'],
+          tones: ['高饱和度','硬光硬影','Y2K 质感','撞色色块','闪光灯红眼'],
+          albums: ['竹内まりや《Variety》','Dua Lipa《Future Nostalgia》'],
+          tracks: ['Plastic Love','Levitating'],
+          desc: '棕榈树下的露天泳池派对正午时分，阳光穿透玻璃杯把液体照得像熔化的宝石。水面的反光在白色天花板上疯狂跳舞。'
+        },
+        {
+          id: 'velvet-abyss', name: '天鹅绒深渊', nameEn: 'Velvet Abyss', category: '暗黑电影质感',
+          colors: ['#1A0A0A','#8B0000','#2C1810','#4A0E0E'],
+          tones: ['极低调布光','深黑 80%','Chiaroscuro','单色双色调','变形宽银幕'],
+          albums: ['Massive Attack《Mezzanine》','The Weeknd《After Hours》'],
+          tracks: ['Angel','After Hours'],
+          desc: '午夜空旷的酒店走廊尽头，一束从半掩房门漏出的暗红色光线像刀一样切开黑暗。走廊地毯上有烟雾在缓缓翻涌。'
+        }
+      ];
+    }
+
+    function getFallbackProjects() {
+      return [
+        {
+          id: 'smart-photo-assistant', name: '智能摄影助手', icon: '📸', status: 'active',
+          desc: '基于 AI 的摄影风格推荐和后期处理助手。分析您的照片，自动推荐最佳的调色方案和构图建议。',
+          features: ['风格识别', '智能调色', '构图分析', '批量处理'],
+          actions: [
+            { label: '立即体验', type: 'primary', link: '#' },
+            { label: '查看文档', type: 'secondary', link: '#' }
+          ]
+        },
+        {
+          id: 'mood-agent', name: '情绪分析 Agent', icon: '🎭', status: 'beta',
+          desc: '一个能够理解人类情绪的智能 Agent。通过文本分析、语音识别和表情检测，精准捕捉用户的情绪状态。',
+          features: ['文本情绪分析', '语音情感识别', '表情检测', '多模态融合'],
+          actions: [
+            { label: '申请 Beta 测试', type: 'primary', link: '#' },
+            { label: '技术架构', type: 'secondary', link: '#' }
+          ]
+        },
+        {
+          id: 'content-generator', name: '内容生成引擎', icon: '✍️', status: 'active',
+          desc: '一站式内容创作平台。从文案到图片，从视频脚本到社交媒体帖子，AI 助您高效创作。',
+          features: ['文案撰写', '图片生成', '视频脚本', '社交媒体'],
+          actions: [
+            { label: '开始创作', type: 'primary', link: '#' },
+            { label: '作品展示', type: 'secondary', link: '#' }
+          ]
+        },
+        {
+          id: 'code-assistant', name: '代码智能助手', icon: '💻', status: 'concept',
+          desc: '专为开发者设计的 AI 编程助手。理解代码意图，提供智能补全、错误检测和重构建议。',
+          features: ['智能补全', '错误检测', '代码重构', '文档生成'],
+          actions: [
+            { label: '关注进展', type: 'primary', link: '#' },
+            { label: '技术栈', type: 'secondary', link: '#' }
+          ]
+        }
+      ];
+    }
+
+    function getFallbackPhoneData() {
+      return {
+        'iPhone': {
+          'iphone-16-pro-max': {
+            name: 'iPhone 16 Pro Max', icon: '📱', sortOrder: 1,
+            storageOptions: ['256GB','512GB','1TB'],
+            pricing: {
+              '256GB': { S:{recycle:7500,sell:9380}, A:{recycle:6380,sell:7970}, B:{recycle:5250,sell:6560}, C:{recycle:3750,sell:4690} },
+              '512GB': { S:{recycle:8500,sell:10630}, A:{recycle:7230,sell:9030}, B:{recycle:5950,sell:7440}, C:{recycle:4250,sell:5310} },
+              '1TB':   { S:{recycle:9500,sell:11880}, A:{recycle:8080,sell:10090}, B:{recycle:6650,sell:8310}, C:{recycle:4750,sell:5940} }
+            }
+          },
+          'iphone-16-pro': {
+            name: 'iPhone 16 Pro', icon: '📱', sortOrder: 2,
+            storageOptions: ['128GB','256GB','512GB','1TB'],
+            pricing: {
+              '128GB': { S:{recycle:5800,sell:7250}, A:{recycle:4930,sell:6160}, B:{recycle:4060,sell:5080}, C:{recycle:2900,sell:3630} },
+              '256GB': { S:{recycle:6500,sell:8130}, A:{recycle:5530,sell:6910}, B:{recycle:4550,sell:5690}, C:{recycle:3250,sell:4060} },
+              '512GB': { S:{recycle:7500,sell:9380}, A:{recycle:6380,sell:7970}, B:{recycle:5250,sell:6560}, C:{recycle:3750,sell:4690} },
+              '1TB':   { S:{recycle:8500,sell:10630}, A:{recycle:7230,sell:9030}, B:{recycle:5950,sell:7440}, C:{recycle:4250,sell:5310} }
+            }
+          },
+          'iphone-15-pro-max': {
+            name: 'iPhone 15 Pro Max', icon: '📱', sortOrder: 3,
+            storageOptions: ['256GB','512GB','1TB'],
+            pricing: {
+              '256GB': { S:{recycle:6000,sell:7500}, A:{recycle:5100,sell:6380}, B:{recycle:4200,sell:5250}, C:{recycle:3000,sell:3750} },
+              '512GB': { S:{recycle:6800,sell:8500}, A:{recycle:5780,sell:7230}, B:{recycle:4760,sell:5950}, C:{recycle:3400,sell:4250} },
+              '1TB':   { S:{recycle:7800,sell:9750}, A:{recycle:6630,sell:8290}, B:{recycle:5460,sell:6830}, C:{recycle:3900,sell:4880} }
+            }
+          },
+          'iphone-15-pro': {
+            name: 'iPhone 15 Pro', icon: '📱', sortOrder: 4,
+            storageOptions: ['128GB','256GB','512GB','1TB'],
+            pricing: {
+              '128GB': { S:{recycle:4800,sell:6000}, A:{recycle:4080,sell:5100}, B:{recycle:3360,sell:4200}, C:{recycle:2400,sell:3000} },
+              '256GB': { S:{recycle:5300,sell:6630}, A:{recycle:4510,sell:5630}, B:{recycle:3710,sell:4640}, C:{recycle:2650,sell:3310} },
+              '512GB': { S:{recycle:6200,sell:7750}, A:{recycle:5270,sell:6590}, B:{recycle:4340,sell:5430}, C:{recycle:3100,sell:3880} },
+              '1TB':   { S:{recycle:7000,sell:8750}, A:{recycle:5950,sell:7440}, B:{recycle:4900,sell:6130}, C:{recycle:3500,sell:4380} }
+            }
+          },
+          'iphone-14-pro-max': {
+            name: 'iPhone 14 Pro Max', icon: '📱', sortOrder: 5,
+            storageOptions: ['128GB','256GB','512GB','1TB'],
+            pricing: {
+              '128GB': { S:{recycle:4800,sell:6000}, A:{recycle:4080,sell:5100}, B:{recycle:3360,sell:4200}, C:{recycle:2400,sell:3000} },
+              '256GB': { S:{recycle:5300,sell:6630}, A:{recycle:4510,sell:5630}, B:{recycle:3710,sell:4640}, C:{recycle:2650,sell:3310} },
+              '512GB': { S:{recycle:6000,sell:7500}, A:{recycle:5100,sell:6380}, B:{recycle:4200,sell:5250}, C:{recycle:3000,sell:3750} },
+              '1TB':   { S:{recycle:6800,sell:8500}, A:{recycle:5780,sell:7230}, B:{recycle:4760,sell:5950}, C:{recycle:3400,sell:4250} }
+            }
+          },
+          'iphone-13': {
+            name: 'iPhone 13', icon: '📱', sortOrder: 6,
+            storageOptions: ['128GB','256GB','512GB'],
+            pricing: {
+              '128GB': { S:{recycle:2400,sell:3000}, A:{recycle:2040,sell:2550}, B:{recycle:1680,sell:2100}, C:{recycle:1200,sell:1500} },
+              '256GB': { S:{recycle:2800,sell:3500}, A:{recycle:2380,sell:2980}, B:{recycle:1960,sell:2450}, C:{recycle:1400,sell:1750} },
+              '512GB': { S:{recycle:3400,sell:4250}, A:{recycle:2890,sell:3610}, B:{recycle:2380,sell:2980}, C:{recycle:1700,sell:2130} }
+            }
+          },
+          'iphone-se-3': {
+            name: 'iPhone SE (第3代)', icon: '📱', sortOrder: 7,
+            storageOptions: ['64GB','128GB','256GB'],
+            pricing: {
+              '64GB':  { S:{recycle:1200,sell:1500}, A:{recycle:1020,sell:1280}, B:{recycle:840,sell:1050}, C:{recycle:600,sell:750} },
+              '128GB': { S:{recycle:1500,sell:1880}, A:{recycle:1280,sell:1590}, B:{recycle:1050,sell:1310}, C:{recycle:750,sell:940} },
+              '256GB': { S:{recycle:1800,sell:2250}, A:{recycle:1530,sell:1910}, B:{recycle:1260,sell:1580}, C:{recycle:900,sell:1130} }
+            }
+          }
+        },
+        'iPad': {
+          'ipad-pro-m4': {
+            name: 'iPad Pro M4', icon: '📟', sortOrder: 1,
+            storageOptions: ['256GB','512GB','1TB','2TB'],
+            pricing: {
+              '256GB': { S:{recycle:6500,sell:8130}, A:{recycle:5530,sell:6910}, B:{recycle:4550,sell:5690}, C:{recycle:3250,sell:4060} },
+              '512GB': { S:{recycle:7500,sell:9380}, A:{recycle:6380,sell:7970}, B:{recycle:5250,sell:6560}, C:{recycle:3750,sell:4690} },
+              '1TB':   { S:{recycle:8800,sell:11000}, A:{recycle:7480,sell:9350}, B:{recycle:6160,sell:7700}, C:{recycle:4400,sell:5500} },
+              '2TB':   { S:{recycle:10500,sell:13130}, A:{recycle:8930,sell:11160}, B:{recycle:7350,sell:9190}, C:{recycle:5250,sell:6560} }
+            }
+          },
+          'ipad-air-m2': {
+            name: 'iPad Air M2', icon: '📟', sortOrder: 2,
+            storageOptions: ['128GB','256GB','512GB','1TB'],
+            pricing: {
+              '128GB': { S:{recycle:3800,sell:4750}, A:{recycle:3230,sell:4040}, B:{recycle:2660,sell:3330}, C:{recycle:1900,sell:2380} },
+              '256GB': { S:{recycle:4300,sell:5380}, A:{recycle:3660,sell:4570}, B:{recycle:3010,sell:3760}, C:{recycle:2150,sell:2690} },
+              '512GB': { S:{recycle:5200,sell:6500}, A:{recycle:4420,sell:5530}, B:{recycle:3640,sell:4550}, C:{recycle:2600,sell:3250} },
+              '1TB':   { S:{recycle:6200,sell:7750}, A:{recycle:5270,sell:6590}, B:{recycle:4340,sell:5430}, C:{recycle:3100,sell:3880} }
+            }
+          },
+          'ipad-10': {
+            name: 'iPad (第10代)', icon: '📟', sortOrder: 3,
+            storageOptions: ['64GB','256GB'],
+            pricing: {
+              '64GB':  { S:{recycle:2000,sell:2500}, A:{recycle:1700,sell:2130}, B:{recycle:1400,sell:1750}, C:{recycle:1000,sell:1250} },
+              '256GB': { S:{recycle:2600,sell:3250}, A:{recycle:2210,sell:2760}, B:{recycle:1820,sell:2280}, C:{recycle:1300,sell:1630} }
+            }
+          },
+          'ipad-mini-7': {
+            name: 'iPad mini (第7代)', icon: '📟', sortOrder: 4,
+            storageOptions: ['128GB','256GB','512GB'],
+            pricing: {
+              '128GB': { S:{recycle:3200,sell:4000}, A:{recycle:2720,sell:3400}, B:{recycle:2240,sell:2800}, C:{recycle:1600,sell:2000} },
+              '256GB': { S:{recycle:3700,sell:4630}, A:{recycle:3150,sell:3930}, B:{recycle:2590,sell:3240}, C:{recycle:1850,sell:2310} },
+              '512GB': { S:{recycle:4500,sell:5630}, A:{recycle:3830,sell:4780}, B:{recycle:3150,sell:3940}, C:{recycle:2250,sell:2810} }
+            }
+          }
+        },
+        'MacBook': {
+          'macbook-pro-m4-max': {
+            name: 'MacBook Pro M4 Max', icon: '💻', sortOrder: 1,
+            storageOptions: ['512GB','1TB','2TB','4TB'],
+            pricing: {
+              '512GB': { S:{recycle:18000,sell:22500}, A:{recycle:15300,sell:19130}, B:{recycle:12600,sell:15750}, C:{recycle:9000,sell:11250} },
+              '1TB':   { S:{recycle:20000,sell:25000}, A:{recycle:17000,sell:21250}, B:{recycle:14000,sell:17500}, C:{recycle:10000,sell:12500} },
+              '2TB':   { S:{recycle:23000,sell:28750}, A:{recycle:19550,sell:24440}, B:{recycle:16100,sell:20130}, C:{recycle:11500,sell:14380} },
+              '4TB':   { S:{recycle:27000,sell:33750}, A:{recycle:22950,sell:28690}, B:{recycle:18900,sell:23630}, C:{recycle:13500,sell:16880} }
+            }
+          },
+          'macbook-air-m3': {
+            name: 'MacBook Air M3', icon: '💻', sortOrder: 2,
+            storageOptions: ['256GB','512GB','1TB','2TB'],
+            pricing: {
+              '256GB': { S:{recycle:6500,sell:8130}, A:{recycle:5530,sell:6910}, B:{recycle:4550,sell:5690}, C:{recycle:3250,sell:4060} },
+              '512GB': { S:{recycle:7500,sell:9380}, A:{recycle:6380,sell:7970}, B:{recycle:5250,sell:6560}, C:{recycle:3750,sell:4690} },
+              '1TB':   { S:{recycle:8800,sell:11000}, A:{recycle:7480,sell:9350}, B:{recycle:6160,sell:7700}, C:{recycle:4400,sell:5500} },
+              '2TB':   { S:{recycle:10500,sell:13130}, A:{recycle:8930,sell:11160}, B:{recycle:7350,sell:9190}, C:{recycle:5250,sell:6560} }
+            }
+          },
+          'macbook-air-m2': {
+            name: 'MacBook Air M2', icon: '💻', sortOrder: 3,
+            storageOptions: ['256GB','512GB','1TB','2TB'],
+            pricing: {
+              '256GB': { S:{recycle:5200,sell:6500}, A:{recycle:4420,sell:5530}, B:{recycle:3640,sell:4550}, C:{recycle:2600,sell:3250} },
+              '512GB': { S:{recycle:6000,sell:7500}, A:{recycle:5100,sell:6380}, B:{recycle:4200,sell:5250}, C:{recycle:3000,sell:3750} },
+              '1TB':   { S:{recycle:7200,sell:9000}, A:{recycle:6120,sell:7650}, B:{recycle:5040,sell:6300}, C:{recycle:3600,sell:4500} },
+              '2TB':   { S:{recycle:8500,sell:10630}, A:{recycle:7230,sell:9030}, B:{recycle:5950,sell:7440}, C:{recycle:4250,sell:5310} }
+            }
+          }
+        },
+        'Apple Watch': {
+          'apple-watch-ultra-2': {
+            name: 'Apple Watch Ultra 2', icon: '⌚', sortOrder: 1,
+            storageOptions: ['64GB'],
+            pricing: {
+              '64GB': { S:{recycle:4200,sell:5250}, A:{recycle:3570,sell:4460}, B:{recycle:2940,sell:3680}, C:{recycle:2100,sell:2630} }
+            }
+          },
+          'apple-watch-series-10': {
+            name: 'Apple Watch Series 10', icon: '⌚', sortOrder: 2,
+            storageOptions: ['64GB'],
+            pricing: {
+              '64GB': { S:{recycle:2200,sell:2750}, A:{recycle:1870,sell:2340}, B:{recycle:1540,sell:1930}, C:{recycle:1100,sell:1380} }
+            }
+          },
+          'apple-watch-se-2': {
+            name: 'Apple Watch SE (第2代)', icon: '⌚', sortOrder: 3,
+            storageOptions: ['32GB'],
+            pricing: {
+              '32GB': { S:{recycle:1000,sell:1250}, A:{recycle:850,sell:1060}, B:{recycle:700,sell:880}, C:{recycle:500,sell:630} }
+            }
+          }
+        },
+        'AirPods': {
+          'airpods-pro-2': {
+            name: 'AirPods Pro 2', icon: '🎧', sortOrder: 1,
+            storageOptions: ['-'],
+            pricing: {
+              '-': { S:{recycle:1000,sell:1250}, A:{recycle:850,sell:1060}, B:{recycle:700,sell:880}, C:{recycle:500,sell:630} }
+            }
+          },
+          'airpods-4': {
+            name: 'AirPods 4', icon: '🎧', sortOrder: 2,
+            storageOptions: ['-'],
+            pricing: {
+              '-': { S:{recycle:600,sell:750}, A:{recycle:510,sell:640}, B:{recycle:420,sell:530}, C:{recycle:300,sell:380} }
+            }
+          },
+          'airpods-max': {
+            name: 'AirPods Max', icon: '🎧', sortOrder: 3,
+            storageOptions: ['-'],
+            pricing: {
+              '-': { S:{recycle:2500,sell:3130}, A:{recycle:2130,sell:2660}, B:{recycle:1750,sell:2190}, C:{recycle:1250,sell:1560} }
+            }
+          }
+        },
+        'Mac': {
+          'imac-m4': {
+            name: 'iMac M4', icon: '🖥️', sortOrder: 1,
+            storageOptions: ['256GB','512GB','1TB','2TB'],
+            pricing: {
+              '256GB': { S:{recycle:8000,sell:10000}, A:{recycle:6800,sell:8500}, B:{recycle:5600,sell:7000}, C:{recycle:4000,sell:5000} },
+              '512GB': { S:{recycle:9500,sell:11880}, A:{recycle:8080,sell:10090}, B:{recycle:6650,sell:8310}, C:{recycle:4750,sell:5940} },
+              '1TB':   { S:{recycle:11000,sell:13750}, A:{recycle:9350,sell:11690}, B:{recycle:7700,sell:9630}, C:{recycle:5500,sell:6880} },
+              '2TB':   { S:{recycle:13000,sell:16250}, A:{recycle:11050,sell:13810}, B:{recycle:9100,sell:11380}, C:{recycle:6500,sell:8130} }
+            }
+          },
+          'mac-mini-m4': {
+            name: 'Mac mini M4', icon: '🖥️', sortOrder: 2,
+            storageOptions: ['256GB','512GB','1TB','2TB'],
+            pricing: {
+              '256GB': { S:{recycle:3500,sell:4380}, A:{recycle:2980,sell:3720}, B:{recycle:2450,sell:3060}, C:{recycle:1750,sell:2190} },
+              '512GB': { S:{recycle:4200,sell:5250}, A:{recycle:3570,sell:4460}, B:{recycle:2940,sell:3680}, C:{recycle:2100,sell:2630} },
+              '1TB':   { S:{recycle:5200,sell:6500}, A:{recycle:4420,sell:5530}, B:{recycle:3640,sell:4550},C:{recycle:2600,sell:3250} },
+              '2TB':   { S:{recycle:6500,sell:8130}, A:{recycle:5530,sell:6910}, B:{recycle:4550,sell:5690}, C:{recycle:3250,sell:4060} }
+            }
+          },
+          'mac-studio-m2-ultra': {
+            name: 'Mac Studio M2 Ultra', icon: '🖥️', sortOrder: 3,
+            storageOptions: ['512GB','1TB','2TB','4TB','8TB'],
+            pricing: {
+              '512GB': { S:{recycle:18000,sell:22500}, A:{recycle:15300,sell:19130}, B:{recycle:12600,sell:15750}, C:{recycle:9000,sell:11250} },
+              '1TB':   { S:{recycle:20000,sell:25000}, A:{recycle:17000,sell:21250}, B:{recycle:14000,sell:17500}, C:{recycle:10000,sell:12500} },
+              '2TB':   { S:{recycle:23000,sell:28750}, A:{recycle:19550,sell:24440}, B:{recycle:16100,sell:20130}, C:{recycle:11500,sell:14380} },
+              '4TB':   { S:{recycle:27000,sell:33750}, A:{recycle:22950,sell:28690}, B:{recycle:18900,sell:23630}, C:{recycle:13500,sell:16880} },
+              '8TB':   { S:{recycle:33000,sell:41250}, A:{recycle:28050,sell:35060}, B:{recycle:23100,sell:28880}, C:{recycle:16500,sell:20630} }
+            }
+          }
+        }
+      };
+    }
+
+    // ===== TOAST NOTIFICATIONS =====
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      
+      const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+      };
+      
+      toast.innerHTML = `
+        <span class="toast-icon">${icons[type]}</span>
+        <span class="toast-message">${message}</span>
+        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+      `;
+      
+      container.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.animation = 'toastSlideIn 0.3s ease reverse';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // ===== MODAL FUNCTIONS =====
+    let currentModalType = 'booking';
+    let currentPhoneId = null;
+    let currentPhoneName = null;
+
+    function openModal(type, phoneId = null, phoneName = null) {
+      currentModalType = type;
+      currentPhoneId = phoneId;
+      currentPhoneName = phoneName;
+      
+      const modalIcon = document.getElementById('modal-icon');
+      const modalTitle = document.getElementById('modal-title');
+      const modalSubtitle = document.getElementById('modal-subtitle');
+      const modalAlternative = document.getElementById('modal-alternative');
+      
+      switch(type) {
+        case 'booking':
+          modalIcon.textContent = '📸';
+          modalTitle.textContent = '预约拍摄';
+          modalSubtitle.textContent = currentRecipe 
+            ? `您选择了「${currentRecipe.name}」风格，填写以下信息预约拍摄`
+            : '填写以下信息，我会尽快与您联系';
+          modalAlternative.style.display = 'block';
+          break;
+        case 'phone':
+          modalIcon.textContent = '📱';
+          modalTitle.textContent = phoneName || '咨询手机';
+          modalSubtitle.textContent = '填写以下信息咨询手机详情';
+          modalAlternative.style.display = 'block';
+          break;
+        case 'contact':
+          modalIcon.textContent = '📧';
+          modalTitle.textContent = '联系我';
+          modalSubtitle.textContent = '有任何问题或合作意向，欢迎留言';
+          modalAlternative.style.display = 'block';
+          break;
+        case 'wechat':
+          modalIcon.textContent = '💬';
+          modalTitle.textContent = '微信咨询';
+          modalSubtitle.textContent = '扫描二维码添加微信好友';
+          modalForm.style.display = 'none';
+          modalAlternative.style.display = 'block';
+          break;
+        default:
+          modalForm.style.display = 'flex';
+      }
+      
+      if (type !== 'wechat') {
+        modalForm.style.display = 'flex';
+      }
+      
+      modalOverlay.classList.add('visible');
+    }
+
+    function closeModal() {
+      modalOverlay.classList.remove('visible');
+      modalForm.reset();
+    }
+
+    function openPhoneModal(phoneId, phoneName) {
+      openModal('phone', phoneId, phoneName);
+    }
+
+    // ===== UPLOAD HANDLERS =====
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function handleFileSelect(file) {
+      if (!file) return;
+      
+      if (!file.type.startsWith('image/')) {
+        showToast('请选择图片文件', 'error');
+        return;
+      }
+      
+      previewName.textContent = file.name;
+      previewSize.textContent = formatFileSize(file.size);
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewImage.src = e.target.result;
+        uploadPreview.classList.add('visible');
+      };
+      reader.readAsDataURL(file);
+      
+      statusIndicator.className = 'status-indicator loading';
+      statusText.textContent = '正在上传...';
+      
+      uploadImage(file).then(result => {
+        if (result.success) {
+          statusIndicator.className = 'status-indicator success';
+          statusText.textContent = '上传成功';
+          showToast('图片上传成功！正在分析风格...', 'success');
+          // Analyze image colors and auto-match
+          setTimeout(() => {
+            analyzeAndMatch(previewImage.src);
+          }, 300);
+        } else {
+          statusIndicator.className = 'status-indicator error';
+          statusText.textContent = '上传失败';
+          showToast(result.error || '上传失败', 'error');
+        }
+      });
+    }
+
+
+    // ===== IMAGE COLOR ANALYSIS & AUTO-MATCH =====
+    function analyzeAndMatch(imageSrc) {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const size = 64;
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, size, size);
+        const data = ctx.getImageData(0, 0, size, size).data;
+
+        // Sample pixels
+        const pixels = [];
+        for (let i = 0; i < data.length; i += 16) {
+          pixels.push([data[i], data[i+1], data[i+2]]);
+        }
+
+        // Get 3 dominant colors via simple quantization
+        const buckets = {};
+        pixels.forEach(p => {
+          const key = `${Math.round(p[0]/32)*32},${Math.round(p[1]/32)*32},${Math.round(p[2]/32)*32}`;
+          if (!buckets[key]) buckets[key] = { color: p, count: 0 };
+          buckets[key].count++;
+        });
+        const sorted = Object.values(buckets).sort((a, b) => b.count - a.count);
+        const dominantColors = sorted.slice(0, 3).map(b => b.color);
+
+        // Average color
+        let rSum = 0, gSum = 0, bSum = 0;
+        pixels.forEach(p => { rSum += p[0]; gSum += p[1]; bSum += p[2]; });
+        const avgColor = [rSum/pixels.length, gSum/pixels.length, bSum/pixels.length];
+
+        const brightness = (avgColor[0] * 0.299 + avgColor[1] * 0.587 + avgColor[2] * 0.114) / 255;
+        const saturation = getSaturation(avgColor);
+        const warmth = getWarmth(avgColor);
+
+        // Match using dominant colors (weighted: top color 50%, 2nd 30%, 3rd 20%)
+        let bestIdx = 0;
+        let bestDist = Infinity;
+        recipes.forEach((rec, idx) => {
+          let dist = 0;
+          const weights = [0.5, 0.3, 0.2];
+          dominantColors.forEach((dc, di) => {
+            let minD = Infinity;
+            rec.colors.forEach(hex => {
+              const d = colorDistance(dc, hexToRgb(hex));
+              if (d < minD) minD = d;
+            });
+            dist += minD * (weights[di] || 0.1);
+          });
+          if (dist < bestDist) { bestDist = dist; bestIdx = idx; }
+        });
+
+        // Map color properties to sensory selections
+        const soundOptions = soundSel.options;
+        const touchOptions = touchSel.options;
+        const lightOptions = lightSel.options;
+
+        // Auto-select based on color analysis
+        if (brightness < 0.3) {
+          // Dark image -> dark cinema / industrial
+          selectByValue(lightSel, 'rembrandt-side');
+          selectByValue(touchSel, 'black-velvet');
+        } else if (brightness > 0.75) {
+          // Bright image -> overexposed / linen warm
+          selectByValue(lightSel, saturation > 0.5 ? 'amber-sunset' : 'overexposed-winter');
+          selectByValue(touchSel, 'frost-glass');
+        } else {
+          // Mid brightness
+          if (warmth > 0.6) {
+            selectByValue(lightSel, 'linen-warm');
+            selectByValue(touchSel, 'dusty-pages');
+          } else if (warmth < 0.4) {
+            selectByValue(lightSel, 'arctic-diffused');
+            selectByValue(touchSel, 'birch-moss');
+          }
+        }
+
+        if (saturation > 0.6) {
+          selectByValue(soundSel, 'citypop-bass');
+        } else if (saturation < 0.2) {
+          selectByValue(soundSel, 'felt-piano');
+        } else {
+          selectByValue(soundSel, 'tape-hiss');
+        }
+
+        // Show inline match result in preview area
+        const matched = recipes[bestIdx];
+        const matchBox = document.getElementById('match-result-inline');
+        const matchName = document.getElementById('match-result-name');
+        const matchColors = document.getElementById('match-result-colors');
+
+        if (matchBox) {
+          matchBox.style.display = 'block';
+          matchName.textContent = `✨ ${matched.name}`;
+          matchColors.innerHTML = matched.colors.map(c =>
+            `<div style="width:18px;height:18px;border-radius:4px;background:${c};border:1px solid rgba(255,255,255,0.1);"></div>`
+          ).join('');
+        }
+
+        // Show mixer and render
+        labMixerSection.classList.add('visible');
+        render();
+      };
+      img.src = imageSrc;
+    }
+
+    function getSaturation(rgb) {
+      const max = Math.max(...rgb) / 255;
+      const min = Math.min(...rgb) / 255;
+      if (max === 0) return 0;
+      return (max - min) / max;
+    }
+
+    function getWarmth(rgb) {
+      // Higher warmth = more red/yellow, less blue
+      const r = rgb[0] / 255, g = rgb[1] / 255, b = rgb[2] / 255;
+      return (r * 0.6 + g * 0.3 - b * 0.4 + 0.3);
+    }
+
+    function hexToRgb(hex) {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return [r, g, b];
+    }
+
+    function colorDistance(c1, c2) {
+      return Math.sqrt(
+        Math.pow(c1[0] - c2[0], 2) +
+        Math.pow(c1[1] - c2[1], 2) +
+        Math.pow(c1[2] - c2[2], 2)
+      );
+    }
+
+    function colorDistanceToRecipe(avgColor, recipeColors) {
+      let minDist = Infinity;
+      recipeColors.forEach(hex => {
+        const dist = colorDistance(avgColor, hexToRgb(hex));
+        if (dist < minDist) minDist = dist;
+      });
+      return minDist;
+    }
+
+    function selectByValue(sel, val) {
+      for (let i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value === val) { sel.selectedIndex = i; return; }
+      }
+    }
+
+    // ===== EVENT LISTENERS =====
+    // Note: mixer select events are bound dynamically in renderMixerControls()
+
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const sectionId = item.dataset.section;
+        scrollToSection(sectionId);
+      });
+    });
+
+    mobileMenuToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+      mobileMenuToggle.classList.toggle('open');
+    });
+
+    uploadArea.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      handleFileSelect(file);
+    });
+
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      handleFileSelect(file);
+    });
+
+    btnBookRecipe.addEventListener('click', () => {
+      openModal('booking');
+    });
+
+    modalClose.addEventListener('click', closeModal);
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) {
+        closeModal();
+      }
+    });
+
+    modalForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      showToast('提交成功！我会尽快与您联系', 'success');
+      closeModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modalOverlay.classList.contains('visible')) {
+        closeModal();
+      }
+    });
+
+    // ===== INIT =====
+    async function init() {
+      await Promise.all([
+        fetchData(),
+        fetchQuota(),
+        loadMixerDimensions()
+      ]);
+      createScrollObserver();
+      render();
+    }
+
+    init();
+  </script>
+
+  <!-- Floating Music Control -->
+  <div id="floating-music" style="position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(10,10,15,0.92);border:1px solid rgba(196,162,101,0.3);border-radius:40px;backdrop-filter:blur(12px);box-shadow:0 4px 24px rgba(0,0,0,0.5);cursor:pointer;transition:all 0.3s;" onclick="toggleGlobalMusic()">
+    <span id="floating-music-icon" style="font-size:1.2rem;">🎵</span>
+    <span id="floating-music-title" style="font-size:.78rem;color:#e8e3db;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">播放音乐</span>
+    <span id="floating-music-btn" style="font-size:1rem;color:#c4a265;">▶</span>
+  </div>
+
+  <script>
+    let globalMusicReady = false;
+    function toggleGlobalMusic() {
+      if (!globalMusicReady) {
+        // First click: load a track and start playing
+        fetch('/api/music/match?sound=tape-hiss&touch=dusty-pages&light=amber-sunset')
+          .then(r => r.json())
+          .then(data => {
+            if (data.success && data.data && data.data.length > 0) {
+              const track = data.data[0];
+              bgAudio.src = '/api/music/stream/' + track.id;
+              bgAudio.volume = 0.3;
+              bgAudio.play().then(() => {
+                globalMusicReady = true;
+                musicPlaying = true;
+                document.getElementById('floating-music-btn').textContent = '⏸';
+                document.getElementById('floating-music-title').textContent = track.title;
+              }).catch(() => {
+                document.getElementById('floating-music-title').textContent = '点击重试';
+              });
+            } else {
+              document.getElementById('floating-music-title').textContent = '暂无音乐';
+            }
+          });
+      } else {
+        // Toggle play/pause
+        if (musicPlaying) {
+          bgAudio.pause();
+          musicPlaying = false;
+          document.getElementById('floating-music-btn').textContent = '▶';
+        } else {
+          bgAudio.play();
+          musicPlaying = true;
+          document.getElementById('floating-music-btn').textContent = '⏸';
+        }
+      }
+    }
+  </script>
+</body>
+</html>
